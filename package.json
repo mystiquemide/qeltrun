@@ -1,0 +1,28 @@
+{
+  "name": "qeltrun",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Nox-backed vendor-change payout firewall for Web3 treasuries.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "inspect:nox": "tsx scripts/inspect-nox.ts"
+  },
+  "dependencies": {
+    "@iexec-nox/handle": "0.1.0-beta.13",
+    "@iexec-nox/nox-confidential-contracts": "0.2.2",
+    "@iexec-nox/nox-protocol-contracts": "0.2.4",
+    "ethers": "^6.17.0",
+    "viem": "^2.33.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
