@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.35;
 
-// Global import so the encrypted value types (`ebool`, `externalEbool`) declared by
-// `encrypted-types` come into scope alongside the `Nox` library itself.
-import "@iexec-nox/nox-protocol-contracts/contracts/sdk/Nox.sol";
+import {Nox} from "@iexec-nox/nox-protocol-contracts/contracts/sdk/Nox.sol";
+import {ebool, externalEbool} from "encrypted-types/EncryptedTypes.sol";
 
 /// @title QeltrunPayoutFirewall
+/// @author Qeltrun
 /// @notice Fail-closed payout gate for vendor bank/wallet changes.
 ///
 /// @dev The security model has exactly one way to move a vendor's payout destination:
@@ -41,15 +41,16 @@ contract QeltrunPayoutFirewall {
         bool registered;
     }
 
+    /// @dev Field order is chosen so `currentWallet`, `status` and `approved` share one slot.
     struct ChangeRequest {
         bytes32 vendorId;
+        ebool sealedApproval;
         address currentWallet;
+        RequestStatus status;
+        bool approved;
         address proposedWallet;
         address requestedBy;
         uint256 nonce;
-        RequestStatus status;
-        bool approved;
-        ebool sealedApproval;
     }
 
     // ============ Storage ============
@@ -65,7 +66,18 @@ contract QeltrunPayoutFirewall {
 
     // ============ Events ============
 
+    /// @notice A vendor became known to the firewall.
+    /// @param vendorId Opaque vendor identifier.
+    /// @param payoutWallet Destination funds may be sent to at registration time.
+    /// @param approver Wallet whose sealed approval this vendor's changes require.
     event VendorRegistered(bytes32 indexed vendorId, address indexed payoutWallet, address indexed approver);
+
+    /// @notice Someone asked to move a vendor's payout destination. The gate does not move.
+    /// @param requestId Canonical id derived by {deriveRequestId}.
+    /// @param vendorId Vendor the request targets.
+    /// @param proposedWallet Destination being requested.
+    /// @param requestedBy Caller that opened the request.
+    /// @param nonce Caller-supplied value that distinguishes otherwise identical requests.
     event ChangeRequestOpened(
         bytes32 indexed requestId,
         bytes32 indexed vendorId,
@@ -73,8 +85,22 @@ contract QeltrunPayoutFirewall {
         address requestedBy,
         uint256 nonce
     );
+
+    /// @notice A TEE-sealed approval bit was attached to a request. Its value is still opaque.
+    /// @param requestId Request the approval was attached to.
+    /// @param approver Wallet that sealed and submitted it.
+    /// @param handle Nox handle now held by this contract.
     event ApprovalSealed(bytes32 indexed requestId, address indexed approver, bytes32 handle);
-    event ApprovalSettled(bytes32 indexed requestId, bool approved);
+
+    /// @notice A sealed approval was revealed through a gateway-signed decryption proof.
+    /// @param requestId Request that settled.
+    /// @param approved The revealed bit. `false` is a verified rejection, not a failure.
+    event ApprovalSettled(bytes32 indexed requestId, bool indexed approved);
+
+    /// @notice A vendor's payout destination moved. Only a settled approval can emit this.
+    /// @param vendorId Vendor whose destination moved.
+    /// @param previousWallet Destination before the change.
+    /// @param newWallet Destination after the change.
     event PayoutWalletChanged(bytes32 indexed vendorId, address indexed previousWallet, address indexed newWallet);
 
     // ============ Errors ============
@@ -115,6 +141,10 @@ contract QeltrunPayoutFirewall {
     /// @dev The request id is derived on-chain, so a caller cannot choose it. It binds the
     ///      vendor, both wallets, the requester, a nonce, the chain and this deployment —
     ///      which makes a request non-replayable across vendors, chains or contracts.
+    /// @param vendorId Vendor whose destination should change.
+    /// @param proposedWallet Destination being requested.
+    /// @param nonce Caller-supplied value that distinguishes otherwise identical requests.
+    /// @return requestId Canonical id to seal and settle against.
     function openChangeRequest(bytes32 vendorId, address proposedWallet, uint256 nonce)
         external
         returns (bytes32 requestId)
@@ -156,13 +186,21 @@ contract QeltrunPayoutFirewall {
         Vendor storage vendor = _vendors[request.vendorId];
         if (msg.sender != vendor.approver) revert UnauthorizedApprover(request.vendorId, msg.sender);
 
+        // Advance the status before the first external call. NoxCompute is a fixed protocol
+        // contract with no callbacks into applications, so there is no reentrancy vector here
+        // today, but this makes the guard structural rather than a property of a dependency:
+        // a re-entrant call would now fail its own `RequestNotPending` check.
+        request.status = RequestStatus.Sealed;
+
         ebool approval = Nox.fromExternal(encryptedApproval, handleProof);
         if (!Nox.isInitialized(approval)) revert UninitializedHandle();
 
         bytes32 rawHandle = ebool.unwrap(approval);
         bytes32 boundTo = _handleUsedBy[rawHandle];
         if (boundTo != bytes32(0)) revert HandleAlreadyUsed(rawHandle, boundTo);
+
         _handleUsedBy[rawHandle] = requestId;
+        request.sealedApproval = approval;
 
         // Persist access for this contract so the handle survives past this transaction,
         // keep the approver able to decrypt it, and mark it publicly decryptable so the
@@ -171,10 +209,7 @@ contract QeltrunPayoutFirewall {
         Nox.allow(approval, msg.sender);
         Nox.allowPublicDecryption(approval);
 
-        request.sealedApproval = approval;
-        request.status = RequestStatus.Sealed;
-
-        emit ApprovalSealed(requestId, msg.sender, ebool.unwrap(approval));
+        emit ApprovalSealed(requestId, msg.sender, rawHandle);
     }
 
     /// @notice Settle a sealed request by revealing the approval bit through a gateway-signed proof.
@@ -183,6 +218,7 @@ contract QeltrunPayoutFirewall {
     ///      request as rejected and leaves the payout wallet untouched.
     /// @param requestId Request previously sealed via `sealApproval`.
     /// @param decryptionProof Compact Nox proof: 65-byte signature followed by the decrypted result.
+    /// @return approved The revealed approval bit.
     function settleApproval(bytes32 requestId, bytes calldata decryptionProof) external returns (bool approved) {
         ChangeRequest storage request = _requests[requestId];
         if (request.status == RequestStatus.None) revert RequestNotFound(requestId);
@@ -214,6 +250,10 @@ contract QeltrunPayoutFirewall {
     /// @notice The payout gate. Fail-closed: a destination is allowed only if it is the vendor's
     ///         current payout wallet, and the only path to becoming that wallet is a settled,
     ///         TEE-proven approval.
+    /// @param vendorId Vendor being paid.
+    /// @param destination Address the payment would be sent to.
+    /// @return allowed Whether the payment may proceed.
+    /// @return reason Machine-readable verdict code, meaningful whether allowed or not.
     function isPayoutAllowed(bytes32 vendorId, address destination)
         external
         view
@@ -229,6 +269,12 @@ contract QeltrunPayoutFirewall {
     // ============ Views ============
 
     /// @notice Derive the canonical request id for a change. Mirrors the off-chain derivation.
+    /// @param vendorId Vendor the change targets.
+    /// @param currentWallet Destination the vendor is moving away from.
+    /// @param proposedWallet Destination the vendor is moving to.
+    /// @param requestedBy Caller that would open the request.
+    /// @param nonce Caller-supplied distinguishing value.
+    /// @return The request id, bound to this chain and this deployment.
     function deriveRequestId(
         bytes32 vendorId,
         address currentWallet,
@@ -241,25 +287,36 @@ contract QeltrunPayoutFirewall {
         );
     }
 
+    /// @notice Read a vendor's registration record.
+    /// @param vendorId Vendor to read.
+    /// @return The stored record; `registered` is false if the vendor is unknown.
     function getVendor(bytes32 vendorId) external view returns (Vendor memory) {
         return _vendors[vendorId];
     }
 
+    /// @notice Read a change request.
+    /// @param requestId Request to read.
+    /// @return The stored request; `status` is `None` if the request is unknown.
     function getRequest(bytes32 requestId) external view returns (ChangeRequest memory) {
         return _requests[requestId];
     }
 
     /// @notice Raw Nox handle attached to a request, for UI display and off-chain decryption.
+    /// @param requestId Request to read.
+    /// @return The Nox handle, or zero if nothing has been sealed yet.
     function sealedApprovalHandle(bytes32 requestId) external view returns (bytes32) {
         return ebool.unwrap(_requests[requestId].sealedApproval);
     }
 
     /// @notice Request a given Nox handle has already been consumed by, or zero if unused.
+    /// @param handle Nox handle to look up.
+    /// @return The request that consumed it, or zero.
     function handleUsedBy(bytes32 handle) external view returns (bytes32) {
         return _handleUsedBy[handle];
     }
 
     /// @notice NoxCompute deployment this contract talks to on the current chain.
+    /// @return The NoxCompute address `Nox` resolves for `block.chainid`.
     function noxComputeAddress() external view returns (address) {
         return Nox.noxComputeContract();
     }

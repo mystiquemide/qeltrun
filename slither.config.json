@@ -1,0 +1,10 @@
+{
+  "filter_paths": "node_modules",
+  "solc_remaps": [
+    "@iexec-nox/=node_modules/@iexec-nox/",
+    "encrypted-types/=node_modules/encrypted-types/",
+    "@openzeppelin/=node_modules/.pnpm/@openzeppelin+contracts@5.6.0/node_modules/@openzeppelin/"
+  ],
+  "exclude_informational": false,
+  "exclude_low": false
+}
