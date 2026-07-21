@@ -3,6 +3,12 @@ import { configVariable, defineConfig } from 'hardhat/config';
 
 export default defineConfig({
   plugins: [hardhatEthers],
+  paths: {
+    sources: 'contracts',
+    tests: {
+      solidity: 'test/solidity',
+    },
+  },
   solidity: {
     profiles: {
       default: {

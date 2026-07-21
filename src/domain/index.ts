@@ -1,139 +1,82 @@
-import { createHash } from 'node:crypto';
+import { encodeAbiParameters, keccak256, toBytes } from 'viem';
 
+import { REQUEST_STATUS } from './types.js';
 import type {
-  ApprovalProvider,
-  CreateVendorChangeRequestInput,
-  CreateVendorChangeRequestResult,
+  Address,
   PayoutDecision,
-  PayoutDecisionInput,
-  RegisterVendorInput,
   RequestId,
-  VendorChangeRequest,
+  RequestIdInput,
+  RequestStatus,
+  VendorId,
   VendorRecord,
 } from './types.js';
 
-function sha256Hex(value: string): string {
-  return `0x${createHash('sha256').update(value).digest('hex')}`;
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+/// Turn a human vendor label into the bytes32 id the contract stores.
+export function vendorId(label: string): VendorId {
+  return keccak256(toBytes(label));
 }
 
-export function deriveRequestId(request: VendorChangeRequest): RequestId {
-  return sha256Hex(
-    JSON.stringify({
-      vendorId: request.vendorId,
-      currentPayoutWallet: request.currentPayoutWallet.toLowerCase(),
-      proposedPayoutWallet: request.proposedPayoutWallet.toLowerCase(),
-      requestedBy: request.requestedBy.toLowerCase(),
-      nonce: request.nonce,
-      chainId: request.chainId,
-    }),
+/// Off-chain mirror of `QeltrunPayoutFirewall.deriveRequestId`.
+///
+/// This must stay byte-identical to the Solidity implementation, otherwise the UI would seal
+/// approvals against a request the contract has never heard of. `test/request-id.test.ts`
+/// pins both sides to the same vector.
+export function deriveRequestId(input: RequestIdInput): RequestId {
+  return keccak256(
+    encodeAbiParameters(
+      [
+        { type: 'bytes32' },
+        { type: 'address' },
+        { type: 'address' },
+        { type: 'address' },
+        { type: 'uint256' },
+        { type: 'uint256' },
+        { type: 'address' },
+      ],
+      [
+        input.vendorId,
+        input.currentWallet,
+        input.proposedWallet,
+        input.requestedBy,
+        input.nonce,
+        BigInt(input.chainId),
+        input.firewallAddress,
+      ],
+    ),
   );
 }
 
-export function registerVendor(input: RegisterVendorInput): VendorRecord {
-  return {
-    vendorId: input.vendorId,
-    vendorWallet: input.vendorWallet,
-    activePayoutWallet: input.activePayoutWallet,
-    registeredBy: input.registeredBy,
-    status: 'active',
-  };
+/// Off-chain mirror of `QeltrunPayoutFirewall.isPayoutAllowed`.
+///
+/// The contract remains the authority; this exists so a client can show the verdict before
+/// spending gas, and so the two implementations can be tested against each other.
+export function decidePayout(vendor: VendorRecord, destination: Address): PayoutDecision {
+  if (!vendor.registered) {
+    return { status: 'blocked', reason: 'VENDOR_NOT_REGISTERED', vendorId: vendor.vendorId, destination };
+  }
+  if (isSameAddress(destination, ZERO_ADDRESS)) {
+    return { status: 'blocked', reason: 'ZERO_DESTINATION', vendorId: vendor.vendorId, destination };
+  }
+  if (isSameAddress(destination, vendor.payoutWallet)) {
+    return { status: 'allowed', reason: 'DESTINATION_UNCHANGED', vendorId: vendor.vendorId, destination };
+  }
+  return { status: 'blocked', reason: 'APPROVAL_REQUIRED', vendorId: vendor.vendorId, destination };
 }
 
-export async function createVendorChangeRequest(
-  input: CreateVendorChangeRequestInput,
-): Promise<CreateVendorChangeRequestResult> {
-  const request: VendorChangeRequest = {
-    vendorId: input.vendor.vendorId,
-    currentPayoutWallet: input.vendor.activePayoutWallet,
-    proposedPayoutWallet: input.proposedPayoutWallet,
-    requestedBy: input.requestedBy,
-    reason: input.reason,
-    nonce: input.nonce,
-    chainId: input.provider.chainId,
-  };
-
-  const sealedRequest = await input.provider.sealChangeRequest({ request });
-
-  return {
-    request,
-    sealedRequest,
-    vendor: {
-      ...input.vendor,
-      pendingPayoutWallet: input.proposedPayoutWallet,
-      pendingRequestId: sealedRequest.requestId,
-      status: 'change_pending',
-    },
-  };
+export function isSameAddress(left: string, right: string): boolean {
+  return left.toLowerCase() === right.toLowerCase();
 }
 
-export async function decidePayout(input: PayoutDecisionInput): Promise<PayoutDecision> {
-  const { vendor, requestedPayoutWallet, provider } = input;
-
-  if (requestedPayoutWallet.toLowerCase() === vendor.activePayoutWallet.toLowerCase()) {
-    return {
-      status: 'allowed',
-      reason: 'DESTINATION_UNCHANGED',
-      vendorId: vendor.vendorId,
-      requestedPayoutWallet,
-    };
+/// Decode the `RequestStatus` enum index returned by the contract.
+export function requestStatusFrom(index: number): RequestStatus {
+  const status = REQUEST_STATUS[index];
+  if (status === undefined) {
+    throw new Error(`UNKNOWN_REQUEST_STATUS:${index}`);
   }
-
-  if (vendor.pendingPayoutWallet?.toLowerCase() !== requestedPayoutWallet.toLowerCase()) {
-    return vendor.pendingRequestId
-      ? {
-          status: 'blocked',
-          reason: 'PAYOUT_WALLET_MISMATCH',
-          vendorId: vendor.vendorId,
-          requestedPayoutWallet,
-          requestId: vendor.pendingRequestId,
-        }
-      : {
-          status: 'blocked',
-          reason: 'PAYOUT_WALLET_MISMATCH',
-          vendorId: vendor.vendorId,
-          requestedPayoutWallet,
-        };
-  }
-
-  if (!vendor.pendingRequestId) {
-    return {
-      status: 'blocked',
-      reason: 'APPROVAL_MISSING',
-      vendorId: vendor.vendorId,
-      requestedPayoutWallet,
-    };
-  }
-
-  const known = await provider.isKnownRequest(vendor.pendingRequestId);
-  if (!known) {
-    return {
-      status: 'blocked',
-      reason: 'APPROVAL_UNKNOWN',
-      vendorId: vendor.vendorId,
-      requestedPayoutWallet,
-      requestId: vendor.pendingRequestId,
-    };
-  }
-
-  const approval = await provider.getApproval(vendor.pendingRequestId);
-  if (!approval) {
-    return {
-      status: 'blocked',
-      reason: 'APPROVAL_MISSING',
-      vendorId: vendor.vendorId,
-      requestedPayoutWallet,
-      requestId: vendor.pendingRequestId,
-    };
-  }
-
-  return {
-    status: 'allowed',
-    reason: 'APPROVAL_PRESENT',
-    vendorId: vendor.vendorId,
-    requestedPayoutWallet,
-    requestId: vendor.pendingRequestId,
-    approvalRef: approval.approvalRef,
-  };
+  return status;
 }
 
 export type * from './types.js';
+export { REQUEST_STATUS } from './types.js';
