@@ -108,8 +108,8 @@ Network: Ethereum Sepolia, chain ID `11155111`.
 Safe ownership acceptance and module enablement happened in one batched transaction:
 [`0xb2f06a...c57f`](https://sepolia.etherscan.io/tx/0xb2f06ac5c002d3295b9aa2f0cebb2132c0f9fa5f2e7cbb9681ce621f86f5c57f).
 
-Deployment source revision: pending the first public v2 commit in this branch. Generated ABI:
-[`src/contracts/generated/firewall-v2-abi.ts`](src/contracts/generated/firewall-v2-abi.ts).
+Deployment source revision: [`56f53d9`](https://github.com/Mystiquemide/qeltrun/commit/56f53d9).
+Generated ABI: [`src/contracts/generated/firewall-v2-abi.ts`](src/contracts/generated/firewall-v2-abi.ts).
 
 ## Real usage
 
