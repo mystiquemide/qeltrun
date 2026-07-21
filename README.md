@@ -186,7 +186,7 @@ pnpm run verify   # typecheck + unit tests + compile + Solidity tests
 | `test/solidity/QeltrunPayoutFirewall.invariant.t.sol` | 11 | Invariants and fuzz, 256 runs each |
 | `test/solidity/QeltrunPayoutFirewall.t.sol` | 8 | Lifecycle and gate semantics |
 | `test/solidity/RequestIdParity.t.sol` | 2 | Solidity ↔ TypeScript conformance |
-| `test/*.test.ts` | 25 | Domain gate, request ids, proof encoding, API validation |
+| `test/*.test.ts` | 26 | Domain gate, request ids, proof encoding, API validation |
 
 The attack matrix enumerates threats we thought of. The invariant suite states properties that
 must hold for *any* sequence of calls — the gate never allows a second address, the payout

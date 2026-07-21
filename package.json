@@ -11,7 +11,7 @@
     "inspect:nox": "tsx scripts/inspect-nox.ts",
     "demo": "hardhat run scripts/demo.ts --network hardhatMainnet",
     "test:sol": "hardhat test solidity",
-    "verify": "pnpm run typecheck && pnpm test && pnpm run compile && pnpm run test:sol && pnpm run export:abi",
+    "verify": "pnpm run typecheck && pnpm test && pnpm run compile && pnpm run test:sol && pnpm run export:abi && pnpm run check:docs",
     "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
     "lint:sol": "solhint 'contracts/**/*.sol'",
     "audit:slither": "slither contracts/QeltrunPayoutFirewall.sol --solc \"$(ls /root/.cache/hardhat-nodejs/compilers-v3/linux-amd64/solc-linux-amd64-v0.8.35*)\"",
@@ -21,7 +21,8 @@
     "build:web": "pnpm --filter qeltrun-web build",
     "audit:slither:ci": "pnpm run compile && tsx scripts/slither-baseline.ts",
     "audit:slither:update": "pnpm run compile && tsx scripts/slither-baseline.ts --update",
-    "audit:deps": "pnpm audit --audit-level moderate"
+    "audit:deps": "pnpm audit --audit-level moderate",
+    "check:docs": "tsx scripts/check-doc-counts.ts"
   },
   "dependencies": {
     "@iexec-nox/handle": "0.1.0-beta.13",

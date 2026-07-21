@@ -28,7 +28,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # typecheck, vitest, compile, Solidity tests, ABI export
+      # typecheck, vitest, compile, Solidity tests, ABI export, documented test counts
       - run: pnpm run verify
 
       # The ABI is generated from the compiled artifact. If `verify` changed it, the copy in
