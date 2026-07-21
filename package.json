@@ -18,7 +18,10 @@
     "export:abi": "tsx scripts/export-abi.ts",
     "node": "hardhat node",
     "setup:local": "hardhat run scripts/setup-local.ts --network localhost",
-    "build:web": "pnpm --filter qeltrun-web build"
+    "build:web": "pnpm --filter qeltrun-web build",
+    "audit:slither:ci": "pnpm run compile && tsx scripts/slither-baseline.ts",
+    "audit:slither:update": "pnpm run compile && tsx scripts/slither-baseline.ts --update",
+    "audit:deps": "pnpm audit --audit-level moderate"
   },
   "dependencies": {
     "@iexec-nox/handle": "0.1.0-beta.13",

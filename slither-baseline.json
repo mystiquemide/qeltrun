@@ -1,0 +1,17 @@
+[
+  {
+    "check": "reentrancy-benign",
+    "id": "291806e4a2bf1726bd15c85cd05b204db0cc66de0211c3d767425dd829a9acdb",
+    "description": "Reentrancy in QeltrunPayoutFirewall.sealApproval(bytes32,externalEbool,bytes) (contracts/QeltrunPayoutFirewall.sol#181-213):"
+  },
+  {
+    "check": "reentrancy-no-eth",
+    "id": "c7fb54e5a94faa08ace801f93a08ee1174694c270cf4f9c86b32b0f7f0fb6a52",
+    "description": "Reentrancy in QeltrunPayoutFirewall.sealApproval(bytes32,externalEbool,bytes) (contracts/QeltrunPayoutFirewall.sol#181-213):"
+  },
+  {
+    "check": "reentrancy-events",
+    "id": "ddfb56d478759f691a03f4b3a883c12ba5dbad4eadc0eaa8de734bd49d3454be",
+    "description": "Reentrancy in QeltrunPayoutFirewall.sealApproval(bytes32,externalEbool,bytes) (contracts/QeltrunPayoutFirewall.sol#181-213):"
+  }
+]

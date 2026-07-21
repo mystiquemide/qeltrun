@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # typecheck, vitest, compile, Solidity tests, ABI export
+      - run: pnpm run verify
+
+      # The ABI is generated from the compiled artifact. If `verify` changed it, the copy in
+      # the repo was stale and the frontend was calling a signature that may no longer exist.
+      - name: Fail if the exported ABI is stale
+        run: git diff --exit-code -- web/lib/firewall-abi.ts
+
+      - run: pnpm run lint:sol
+
+      # Runs the full lifecycle against the real NoxCompute and asserts every checkpoint.
+      - run: pnpm run demo
+
+      - run: pnpm --filter qeltrun-web typecheck
+      - run: pnpm run build:web
+
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm audit --audit-level moderate
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install slither-analyzer
+
+      # Slither's findings on this contract are known and accepted; see docs/AUDIT.md. The job
+      # fails only if the set of findings changes, so a *new* finding cannot pass unnoticed.
+      - name: Slither against the accepted baseline
+        run: pnpm run audit:slither:ci

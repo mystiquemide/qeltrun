@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { LocalGatewayApprovalProvider } from '@qeltrun/local-gateway';
+import { InvalidRequest, parseGatewayRequest, type Address, type Hex } from '@/lib/local-gateway-schema';
 
 /**
  * The Nox gateway, for the local chain only.
@@ -16,20 +17,11 @@ import { LocalGatewayApprovalProvider } from '@qeltrun/local-gateway';
 const LOCAL_GATEWAY_KEY = '0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6';
 const LOCAL_CHAIN_ID = 31337;
 
-type SealBody = {
-  action: 'seal';
-  approver: `0x${string}`;
-  applicationContract: `0x${string}`;
-  approve: boolean;
-};
-
-type RevealBody = { action: 'reveal'; handle: `0x${string}` };
-
 /// Sealed bits must survive between the seal request and the reveal request, so the provider
 /// is process-wide rather than per-request. Dev-only, single user, so a module global is fine.
 const providers = new Map<string, LocalGatewayApprovalProvider>();
 
-function providerFor(approver: `0x${string}`): LocalGatewayApprovalProvider {
+function providerFor(approver: Address): LocalGatewayApprovalProvider {
   const key = approver.toLowerCase();
   let provider = providers.get(key);
   if (provider === undefined) {
@@ -45,7 +37,7 @@ function providerFor(approver: `0x${string}`): LocalGatewayApprovalProvider {
 
 /// A handle can be revealed by any caller once the contract marks it publicly decryptable,
 /// exactly as on a live network, so reveal has to find the provider that minted it.
-function providerHolding(handle: `0x${string}`): LocalGatewayApprovalProvider | undefined {
+function providerHolding(handle: Hex): LocalGatewayApprovalProvider | undefined {
   for (const provider of providers.values()) {
     if (provider.knowsHandle(handle)) return provider;
   }
@@ -57,16 +49,18 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'LOCAL_GATEWAY_DISABLED' }, { status: 404 });
   }
 
-  const body = (await request.json()) as SealBody | RevealBody;
-
   try {
+    // Parsing is inside the try: malformed JSON is a client error, not an unhandled rejection.
+    const body = parseGatewayRequest(await request.json());
+
     if (body.action === 'seal') {
-      const sealed = await providerFor(body.approver).sealApproval({
-        approver: body.approver,
-        applicationContract: body.applicationContract,
-        approve: body.approve,
-      });
-      return NextResponse.json(sealed);
+      return NextResponse.json(
+        await providerFor(body.approver).sealApproval({
+          approver: body.approver,
+          applicationContract: body.applicationContract,
+          approve: body.approve,
+        }),
+      );
     }
 
     const provider = providerHolding(body.handle);
@@ -75,6 +69,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
     return NextResponse.json(await provider.revealApproval(body.handle));
   } catch (error) {
+    if (error instanceof InvalidRequest) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: 'INVALID_JSON' }, { status: 400 });
+    }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'LOCAL_GATEWAY_ERROR' },
       { status: 400 },

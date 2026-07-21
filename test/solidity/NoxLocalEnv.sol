@@ -112,4 +112,38 @@ abstract contract NoxLocalEnv is Test {
     function _decryptionProof(bytes32 handle, bool value) internal view returns (bytes memory) {
         return _decryptionProof(handle, value, noxGatewayKey);
     }
+
+    // ============ External surface for invariant handlers ============
+    //
+    // The invariant handler is a separate contract, so it cannot reach the `internal` helpers
+    // above. These wrappers expose the same gateway behaviour and additionally remember which
+    // plaintext each handle carries, which a handler needs in order to settle a request it
+    // sealed several fuzz steps earlier.
+
+    mapping(bytes32 handle => bool value) private _plaintexts;
+    uint256 private _handleSalt;
+
+    function mintBoolHandle(uint256 salt) external view returns (bytes32) {
+        return _boolHandle(string(abi.encodePacked("invariant/", salt)));
+    }
+
+    function buildInputProof(bytes32 handle, address owner, address app)
+        external
+        view
+        returns (bytes memory)
+    {
+        return _inputProof(handle, owner, app);
+    }
+
+    function buildDecryptionProof(bytes32 handle, bool value) external view returns (bytes memory) {
+        return _decryptionProof(handle, value);
+    }
+
+    function rememberPlaintext(bytes32 handle, bool value) external {
+        _plaintexts[handle] = value;
+    }
+
+    function plaintextFor(bytes32 handle) external view returns (bool) {
+        return _plaintexts[handle];
+    }
 }

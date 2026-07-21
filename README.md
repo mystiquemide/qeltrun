@@ -155,6 +155,10 @@ Two things about it are deliberate:
 `pnpm run verify` runs it — so a stale ABI shows up as a dirty git tree rather than as a
 runtime failure.
 
+`web/deployment.local.json` is committed as a snapshot of a fresh Hardhat node, so the app
+builds straight after a clone. `pnpm run setup:local` overwrites it with whatever your node
+actually produced; expect it to show as modified, and do not commit that.
+
 ## Testing against the real protocol, not a mock
 
 There is no supported way to run Nox on a local chain, so most projects would mock it — and a
@@ -179,9 +183,15 @@ pnpm run verify   # typecheck + unit tests + compile + Solidity tests
 | Suite | Count | What it covers |
 |---|---:|---|
 | `test/solidity/QeltrunPayoutFirewall.attack.t.sol` | 19 | The attack matrix |
+| `test/solidity/QeltrunPayoutFirewall.invariant.t.sol` | 11 | Invariants and fuzz, 256 runs each |
 | `test/solidity/QeltrunPayoutFirewall.t.sol` | 8 | Lifecycle and gate semantics |
 | `test/solidity/RequestIdParity.t.sol` | 2 | Solidity ↔ TypeScript conformance |
-| `test/*.test.ts` | 19 | Domain gate, request ids, proof encoding |
+| `test/*.test.ts` | 25 | Domain gate, request ids, proof encoding, API validation |
+
+The attack matrix enumerates threats we thought of. The invariant suite states properties that
+must hold for *any* sequence of calls — the gate never allows a second address, the payout
+wallet never moves without an approved settlement, a handle never binds to two requests — so a
+case nobody imagined still fails the build.
 
 A sample of the attack matrix — the full table is in [`docs/AUDIT.md`](docs/AUDIT.md):
 
@@ -211,10 +221,15 @@ than by a linter:
   settles first, and the older one would then have silently overwritten it. Fixed by refusing
   to settle a request whose starting wallet no longer matches reality.
 
-`pnpm run lint:sol` (solhint) is clean. `pnpm run audit:slither` reports three reentrancy
-findings, all in `sealApproval`, all the same root cause; they are analysed and accepted in the
-audit note rather than suppressed — the handle only exists after the external call returns, so
-no ordering can write it first.
+`pnpm run lint:sol` (solhint) and `pnpm run audit:deps` are clean. Slither reports three
+reentrancy findings, all in `sealApproval`, all the same root cause; they are analysed and
+accepted in the audit note rather than suppressed — the handle only exists after the external
+call returns, so no ordering can write it first.
+
+CI runs `pnpm run audit:slither:ci`, which compares Slither's output against
+`slither-baseline.json` and passes only when the findings match exactly. A new finding fails the
+build; a baseline finding that stops reproducing also fails, so the accepted list cannot outlive
+the code it describes.
 
 ## Feedback for iExec
 
