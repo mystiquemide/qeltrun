@@ -8,7 +8,11 @@
     "compile": "hardhat compile",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "inspect:nox": "tsx scripts/inspect-nox.ts"
+    "inspect:nox": "tsx scripts/inspect-nox.ts",
+    "demo": "hardhat run scripts/demo.ts --network hardhatMainnet",
+    "test:sol": "hardhat test solidity",
+    "verify": "pnpm run typecheck && pnpm test && pnpm run compile && pnpm run test:sol",
+    "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia"
   },
   "dependencies": {
     "@iexec-nox/handle": "0.1.0-beta.13",

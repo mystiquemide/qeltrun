@@ -29,6 +29,10 @@ export default defineConfig({
     hardhatMainnet: {
       type: 'edr-simulated',
       chainType: 'l1',
+      // The demo script places the real NoxCompute on the local chain so the Nox path is
+      // genuine rather than mocked. Unoptimized it is ~30 KB, past the Spurious Dragon limit.
+      // Local development only; nothing here affects the Sepolia deployment.
+      allowUnlimitedContractSize: true,
     },
     sepolia: {
       type: 'http',
