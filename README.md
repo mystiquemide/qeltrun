@@ -109,15 +109,18 @@ TypeScript client in this repo.
 
 ## Run it
 
-Requires Node 22+ and pnpm.
+Before you start you need Node 22 or later, and pnpm. You do not need an RPC URL, an API key,
+or a funded wallet.
 
 ```bash
 pnpm install
 pnpm run demo
 ```
 
-`pnpm run demo` walks the full lifecycle on an in-process Hardhat chain and **asserts every
-checkpoint**, so it exits non-zero rather than printing a misleading transcript.
+`pnpm run demo` runs the full lifecycle on an in-process Hardhat chain. It asserts every
+checkpoint, so it exits non-zero rather than printing a misleading transcript.
+
+Expected output:
 
 ```
 1. Stand up the Nox protocol contract locally
@@ -175,18 +178,24 @@ Note the left panel in both: the request id reads *needs a wallet*, because it i
 the requester and none is connected. The page still shows the real gate verdict - reading never
 needs a wallet.
 
+Run it locally in three terminals:
+
 ```bash
-pnpm run node                    # terminal 1: a real chain
-pnpm run setup:local             # terminal 2: deploy NoxCompute + firewall, register a vendor
-pnpm --filter qeltrun-web dev    # terminal 3: http://localhost:3000
+pnpm run node                    # terminal 1: start a real chain
+pnpm run setup:local             # terminal 2: deploy NoxCompute and the firewall, register a vendor
+pnpm --filter qeltrun-web dev    # terminal 3: serve the dashboard
 ```
 
+Then open `http://localhost:3000`. The gate card should read **PAYOUT BLOCKED**. If it reads
+allowed, the vendor already pays the address the dashboard is testing. Set
+`NEXT_PUBLIC_SEPOLIA_PROPOSED_WALLET` to an address the vendor does not pay.
+
 **The UI never simulates anything.** It always talks to a real chain running the real
-NoxCompute - locally by default, or Sepolia once `NEXT_PUBLIC_SEPOLIA_FIREWALL` is set. The
-only thing that differs between the two is where the approval bit gets sealed: on Sepolia that
-is iExec's gateway via `@iexec-nox/handle`; locally it is a route handler holding the key the
-local NoxCompute was initialized with. Both emit the same proof bytes, and the contract
-verifies them with the same code.
+NoxCompute. It uses the local chain by default, and Sepolia once
+`NEXT_PUBLIC_SEPOLIA_FIREWALL` is set. Only one thing differs between the two: where the
+approval bit gets sealed. On Sepolia that is iExec's gateway through `@iexec-nox/handle`.
+Locally it is a route handler holding the key the local NoxCompute was initialized with. Both
+emit the same proof bytes, and the contract verifies them with the same code.
 
 Two things about it are deliberate:
 
@@ -354,7 +363,8 @@ service, and it found something nothing else could: see the note on subgraph ind
 
 ## Deploying
 
-Hardhat 3 reads secrets from the process environment and does not load `.env` files.
+Before you deploy you need a funded wallet on the target chain, and an RPC URL. Hardhat 3 reads
+secrets from the process environment. It does not load `.env` files, so export them first.
 
 ```bash
 export SEPOLIA_RPC_URL=...
@@ -362,10 +372,12 @@ export PRIVATE_KEY=...
 pnpm run deploy:sepolia
 ```
 
-The script refuses to deploy to a chain Nox does not support and verifies the deployment
-resolves the expected NoxCompute - a mismatch would leave every `sealApproval` failing proof
-validation. Pass the deployed address as `applicationContract` to `encryptInput`; Nox binds
-every input proof to it.
+The script refuses to deploy to a chain Nox does not support. After deployment it checks that
+the contract resolves the expected NoxCompute address. If that check fails, stop: a mismatch
+leaves every `sealApproval` failing proof validation.
+
+After deployment, pass the deployed address as `applicationContract` to `encryptInput`. Nox
+binds every input proof to it, and the contract compares it to `msg.sender`.
 
 ## How this differs
 
