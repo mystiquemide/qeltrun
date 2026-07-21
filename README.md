@@ -124,6 +124,37 @@ All checkpoints held.
 Note checkpoints 4 and 5: an open request does not unlock the gate, and neither does a sealed
 one. Nothing moves until a proof the gateway signed says it may.
 
+## The dashboard
+
+A control-room UI for the same flow — vendor record, gate verdict, state rail, Nox evidence and
+an action log.
+
+```bash
+pnpm run node                    # terminal 1: a real chain
+pnpm run setup:local             # terminal 2: deploy NoxCompute + firewall, register a vendor
+pnpm --filter qeltrun-web dev    # terminal 3: http://localhost:3000
+```
+
+**The UI never simulates anything.** It always talks to a real chain running the real
+NoxCompute — locally by default, or Sepolia once `NEXT_PUBLIC_SEPOLIA_FIREWALL` is set. The
+only thing that differs between the two is where the approval bit gets sealed: on Sepolia that
+is iExec's gateway via `@iexec-nox/handle`; locally it is a route handler holding the key the
+local NoxCompute was initialized with. Both emit the same proof bytes, and the contract
+verifies them with the same code.
+
+Two things about it are deliberate:
+
+- **It reads without a wallet.** Gate verdict, vendor record and request status all render from
+  the chain before anyone clicks connect, so a broken wallet extension cannot leave a reviewer
+  looking at an empty page. A wallet is only needed to *write*.
+- **`setup:local` prints the approver's address.** Only that wallet can seal; every other
+  wallet is rejected on chain, and the UI says so rather than letting you find out by paying
+  gas.
+
+`pnpm run export:abi` regenerates `web/lib/firewall-abi.ts` from the compiled artifact, and
+`pnpm run verify` runs it — so a stale ABI shows up as a dirty git tree rather than as a
+runtime failure.
+
 ## Testing against the real protocol, not a mock
 
 There is no supported way to run Nox on a local chain, so most projects would mock it — and a
@@ -207,6 +238,11 @@ src/
 scripts/
   demo.ts                         end-to-end lifecycle, asserts every checkpoint
   deploy.ts                       Sepolia deployment with chain and Nox address checks
+  setup-local.ts                  stands up the full stack on a local node, for the dashboard
+web/
+  components/dashboard.tsx        the control room
+  lib/approvals.ts                Nox gateway on Sepolia, local route handler on 31337
+  app/api/local-gateway/          the local stand-in for iExec's gateway
 test/
   solidity/                       attack matrix, lifecycle, cross-language parity
 docs/

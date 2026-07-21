@@ -79,6 +79,11 @@ export class LocalGatewayApprovalProvider implements ApprovalProvider {
     return this.gateway.address;
   }
 
+  /// Whether this instance minted the handle and can therefore reveal it.
+  knowsHandle(handle: Hex): boolean {
+    return this.plaintexts.has(handle);
+  }
+
   async sealApproval(input: SealApprovalInput): Promise<SealedApproval> {
     if (!isSameAddress(input.approver, this.approver)) {
       throw new Error(`LOCAL_SEAL_WALLET_MISMATCH:${input.approver}:expected:${this.approver}`);

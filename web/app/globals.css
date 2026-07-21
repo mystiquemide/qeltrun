@@ -1,0 +1,61 @@
+@import 'tailwindcss';
+
+/* Qeltrun reads as a finance control room, not a crypto landing page: dark, dense, precise.
+   No gradients, no glows. Colour carries one meaning only — the state of the gate. */
+@theme {
+  --color-bg: #080a0d;
+  --color-panel: #0f1318;
+  --color-panel-border: #222a33;
+  --color-divider: #1a2028;
+  --color-ink: #f4f7fa;
+  --color-ink-dim: #8c98a8;
+  --color-ink-muted: #5e6a78;
+  --color-blocked: #f25f5c;
+  --color-approved: #3ddc97;
+  --color-warning: #f7b955;
+  --color-nox: #7da7ff;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Addresses, request ids, handles and proofs are all read character by character —
+   they belong in mono with loose tracking, never in the UI face. */
+.ledger {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+  letter-spacing: 0.01em;
+}
+
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+}
+
+.hairline {
+  border-color: var(--color-divider);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pulse-live {
+    animation: pulse-live 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse-live {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "chainId": 31337,
+  "firewall": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+  "noxCompute": "0x75C6AF4430cc474b1bb9b8540b7E46D6f8e1C685",
+  "gateway": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+  "demoVendor": {
+    "label": "vendor:northwind-logistics",
+    "vendorId": "0xfe8551dfbb91003d295270354cce2b6b94133f2dff360898e11a61edaa7df2fd",
+    "payoutWallet": "0x1111111111111111111111111111111111111111",
+    "approver": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+  }
+}

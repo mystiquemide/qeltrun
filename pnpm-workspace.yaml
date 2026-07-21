@@ -1,4 +1,12 @@
+packages:
+  - '.'
+  - 'web'
 allowBuilds:
   esbuild: true
+  '@tailwindcss/oxide': true
+  sharp: true
+  bufferutil: false
+  keccak: false
+  utf-8-validate: false
 minimumReleaseAgeExclude:
   - hardhat@3.11.0
