@@ -1,0 +1,26 @@
+[
+  {
+    "target": "contracts/QeltrunPayoutFirewallV2.sol",
+    "check": "reentrancy-no-eth",
+    "id": "0b477e9bbe01fc57eaf8793cb06368c13594028c8dd6e74cbcb7872746a4e5d1",
+    "description": "Reentrancy in QeltrunPayoutFirewallV2.submitPrivateSignal(bytes32,externalEuint16,bytes) (contracts/QeltrunPayoutFirewallV2.sol#210-257):"
+  },
+  {
+    "target": "contracts/QeltrunPayoutFirewallV2.sol",
+    "check": "reentrancy-no-eth",
+    "id": "142dbf2051bdb6e1d52c669cfca8558c5c6db89e2826e6b240468f0218a44180",
+    "description": "Reentrancy in QeltrunPayoutFirewallV2.submitPrivateSignal(bytes32,externalEuint16,bytes) (contracts/QeltrunPayoutFirewallV2.sol#210-257):"
+  },
+  {
+    "target": "contracts/QeltrunPayoutFirewallV2.sol",
+    "check": "reentrancy-benign",
+    "id": "8b5916180bfd8f97a8c3d4d4d2647d33b0226f0f6911dd6a6c314348a6151b9b",
+    "description": "Reentrancy in QeltrunPayoutFirewallV2.submitPrivateSignal(bytes32,externalEuint16,bytes) (contracts/QeltrunPayoutFirewallV2.sol#210-257):"
+  },
+  {
+    "target": "contracts/QeltrunPayoutFirewallV2.sol",
+    "check": "timestamp",
+    "id": "d03d55b42df0303df87ff2294cc69d1bdcdfea59bb17d44b64a60e3994876446",
+    "description": "QeltrunPayoutFirewallV2.executeApproverRecovery(bytes32) (contracts/QeltrunPayoutFirewallV2.sol#367-376) uses timestamp for comparisons"
+  }
+]

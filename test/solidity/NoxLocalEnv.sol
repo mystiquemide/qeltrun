@@ -28,6 +28,8 @@ abstract contract NoxLocalEnv is Test {
 
     /// TEE type tag for `ebool`, byte 5 of a handle. `TEEType.Bool` is enum index 0.
     uint8 internal constant TEE_TYPE_BOOL = 0;
+    /// TEE type tag for `euint16`, byte 5 of a handle. `TEEType.Uint16` is enum index 5.
+    uint8 internal constant TEE_TYPE_UINT16 = 5;
     /// Bit 0 of the attrs byte (byte 6). Set means confidential; unset means public handle.
     bytes1 internal constant ATTR_IS_UNIQUE_HANDLE = 0x01;
 
@@ -53,8 +55,16 @@ abstract contract NoxLocalEnv is Test {
 
     /// @dev Handle layout: [0]=version [1-4]=chainId [5]=teeType [6]=attrs [7-31]=pre-handle.
     function _boolHandle(string memory salt) internal view returns (bytes32) {
+        return _handle(salt, TEE_TYPE_BOOL);
+    }
+
+    function _uint16Handle(string memory salt) internal view returns (bytes32) {
+        return _handle(salt, TEE_TYPE_UINT16);
+    }
+
+    function _handle(string memory salt, uint8 teeType) private view returns (bytes32) {
         bytes32 handle = bytes32(bytes4(uint32(block.chainid))) >> (1 * 8);
-        handle |= bytes32(bytes1(TEE_TYPE_BOOL)) >> (5 * 8);
+        handle |= bytes32(bytes1(teeType)) >> (5 * 8);
         handle |= bytes32(ATTR_IS_UNIQUE_HANDLE) >> (6 * 8);
         // Lowest 25 bytes are the pre-handle; mask keeps us clear of bytes 0-6.
         handle |= keccak256(abi.encodePacked("qeltrun/handle/", salt)) & bytes32((uint256(1) << 200) - 1);

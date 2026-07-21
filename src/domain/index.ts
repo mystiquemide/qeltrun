@@ -80,3 +80,5 @@ export function requestStatusFrom(index: number): RequestStatus {
 
 export type * from './types.js';
 export { REQUEST_STATUS } from './types.js';
+export { deriveRequestIdV2 } from './v2.js';
+export type { RequestIdV2Input } from './v2.js';

@@ -1,6 +1,11 @@
 import hardhatEthers from '@nomicfoundation/hardhat-ethers';
 import { configVariable, defineConfig } from 'hardhat/config';
 
+const fuzzRuns = Number(process.env.QELTRUN_FUZZ_RUNS ?? 256);
+const invariantRuns = Number(process.env.QELTRUN_INVARIANT_RUNS ?? 256);
+const invariantDepth = Number(process.env.QELTRUN_INVARIANT_DEPTH ?? 32);
+const fuzzSeed = process.env.QELTRUN_FUZZ_SEED ?? `0x${'51'.repeat(32)}`;
+
 /// Hardhat requires a `0x`-prefixed private key, but wallets and key managers hand out bare
 /// 64-character hex about as often as prefixed. Normalizing here beats making anyone edit a
 /// secrets file, and the failure it prevents ("invalid private key") does not say what is wrong.
@@ -20,6 +25,12 @@ export default defineConfig({
     sources: 'contracts',
     tests: {
       solidity: 'test/solidity',
+    },
+  },
+  test: {
+    solidity: {
+      fuzz: { runs: fuzzRuns, seed: fuzzSeed },
+      invariant: { runs: invariantRuns, depth: invariantDepth },
     },
   },
   solidity: {

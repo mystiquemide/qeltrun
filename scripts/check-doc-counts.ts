@@ -62,24 +62,6 @@ const expectations: Expectation[] = [
     expected: solidityTotal,
   },
   {
-    doc: 'memory.md',
-    label: 'vitest total',
-    pattern: /(\d+) vitest passing/,
-    expected: vitestTotal,
-  },
-  {
-    doc: 'memory.md',
-    label: 'Solidity total',
-    pattern: /(\d+) Solidity passing/,
-    expected: solidityTotal,
-  },
-  {
-    doc: 'memory.md',
-    label: 'test:sol command row',
-    pattern: /\|\s*`pnpm run test:sol`\s*\|\s*(\d+) Solidity tests\s*\|/,
-    expected: solidityTotal,
-  },
-  {
     doc: 'docs/AUDIT.md',
     label: 'attack matrix',
     pattern: /QeltrunPayoutFirewall\.attack\.t\.sol`, (\d+) tests/,
