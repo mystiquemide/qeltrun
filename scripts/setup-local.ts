@@ -24,6 +24,8 @@ import type { Address } from '../src/domain/types.js';
 /// Hardhat account #9's key, used as the local Nox gateway signer. Well-known development key.
 const LOCAL_GATEWAY_ADDRESS = '0xa0Ee7A142d267C1f36714E4a8F75612F20a79720' as Address;
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 const DEMO_VENDOR_LABEL = 'vendor:northwind-logistics';
 const DEMO_PAYOUT_WALLET = '0x1111111111111111111111111111111111111111' as Address;
 
@@ -53,15 +55,30 @@ async function main(): Promise<void> {
       kmsPublicKey: string,
       gateway: string,
     ): Promise<{ wait(): Promise<unknown> }>;
+    gateway(): Promise<string>;
   };
-  await (
-    await nox.initialize(deployer.address, deployer.address, '0x02deadbeef', LOCAL_GATEWAY_ADDRESS)
-  ).wait();
+
+  // Re-running this script against a node that is already set up is normal — you redeploy the
+  // firewall after a contract change without restarting the chain. NoxCompute is initialize-once,
+  // so calling it again reverts with an opaque `InvalidInitialization()`. Only initialize if the
+  // gateway is unset.
+  const existingGateway = await nox.gateway().catch(() => ZERO_ADDRESS);
+  if (existingGateway === ZERO_ADDRESS) {
+    await (
+      await nox.initialize(deployer.address, deployer.address, '0x02deadbeef', LOCAL_GATEWAY_ADDRESS)
+    ).wait();
+  } else if (existingGateway.toLowerCase() !== LOCAL_GATEWAY_ADDRESS.toLowerCase()) {
+    throw new Error(
+      `NOX_GATEWAY_MISMATCH:${existingGateway}:expected:${LOCAL_GATEWAY_ADDRESS}. ` +
+        'Restart `pnpm run node` to get a clean chain.',
+    );
+  }
 
   const firewall = asFirewall(await ethers.deployContract('QeltrunPayoutFirewall'));
   await firewall.waitForDeployment();
   const firewallAddress = (await firewall.getAddress()) as Address;
 
+  // The firewall is freshly deployed each run, so registration always applies to a clean slate.
   const demoVendorId = vendorId(DEMO_VENDOR_LABEL);
   await (
     await firewall.registerVendor(demoVendorId, DEMO_PAYOUT_WALLET, approver.address as Address)

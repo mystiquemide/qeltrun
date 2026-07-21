@@ -192,6 +192,17 @@ export function Dashboard() {
       await gate.refetch();
     });
 
+  // Without a connected wallet there is no requester to derive a request id from, so the
+  // per-request status is genuinely unknown. Say that, rather than reporting `none` — which
+  // would render as "no request open" next to a gate that has already been opened by one.
+  const requestTracked = requestId !== undefined;
+
+  // The settled destination becoming the vendor's payout wallet is observable without a wallet,
+  // and it can only have happened through the full lifecycle. Trust it over the unknown status.
+  const settled = destinationCleared || status === 'settled';
+
+  const unknownDetail = 'Connect a wallet to track this request';
+
   const steps: RailStep[] = [
     {
       label: 'Vendor registered',
@@ -200,17 +211,25 @@ export function Dashboard() {
     },
     {
       label: 'Destination change requested',
-      detail:
-        status === 'none' ? 'No request open for this destination' : 'Recorded on chain, gate unchanged',
-      status: status === 'none' ? 'active' : 'done',
+      detail: settled
+        ? 'Recorded on chain, gate unchanged'
+        : !requestTracked
+          ? unknownDetail
+          : status === 'none'
+            ? 'No request open for this destination'
+            : 'Recorded on chain, gate unchanged',
+      status: settled ? 'done' : !requestTracked ? 'pending' : status === 'none' ? 'active' : 'done',
     },
     {
       label: 'Approval sealed inside the TEE',
-      detail:
-        status === 'sealed' || status === 'settled'
-          ? 'Contract holds a Nox handle it cannot read'
-          : 'Awaiting the registered approver',
-      status: status === 'sealed' || status === 'settled' ? 'done' : status === 'pending' ? 'active' : 'pending',
+      detail: settled
+        ? 'Contract holds a Nox handle it cannot read'
+        : !requestTracked
+          ? unknownDetail
+          : status === 'sealed'
+            ? 'Contract holds a Nox handle it cannot read'
+            : 'Awaiting the registered approver',
+      status: settled || status === 'sealed' ? 'done' : status === 'pending' ? 'active' : 'pending',
     },
     {
       label: 'Payout attempted before approval',
@@ -219,11 +238,12 @@ export function Dashboard() {
     },
     {
       label: 'Approval revealed by gateway proof',
-      detail:
-        status === 'settled'
-          ? 'Decryption proof verified on chain'
+      detail: settled
+        ? 'Decryption proof verified on chain'
+        : !requestTracked
+          ? unknownDetail
           : 'Awaiting a gateway-signed decryption proof',
-      status: status === 'settled' ? 'done' : status === 'sealed' ? 'active' : 'pending',
+      status: settled ? 'done' : status === 'sealed' ? 'active' : 'pending',
     },
     {
       label: 'Payout allowed',
@@ -324,12 +344,16 @@ export function Dashboard() {
                 </Field>
                 <Field label="Request id">
                   <Mono
-                    value={requestId === undefined ? '—' : truncate(requestId as string)}
+                    value={requestId === undefined ? 'needs a wallet' : truncate(requestId as string)}
                     title={requestId as string | undefined}
                   />
                 </Field>
                 <Field label="Status">
-                  <span className="ledger text-[13px]">{status}</span>
+                  {/* The id is derived from the requester, so without a connected wallet this is
+                      genuinely unknown rather than `none`. */}
+                  <span className="ledger text-[13px]">
+                    {requestTracked ? status : settled ? 'settled' : 'unknown'}
+                  </span>
                 </Field>
               </Panel>
             </div>

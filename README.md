@@ -31,35 +31,64 @@ Qeltrun moves that question on chain and makes it unanswerable without proof.
 
 Three stages. The gate stays shut through the first two.
 
+```mermaid
+flowchart LR
+    subgraph OFF[Off-chain]
+        REQ[Requester<br/>any wallet]
+        APP[Approver<br/>registered wallet]
+        GW[["iExec Nox gateway<br/>TEE · Intel TDX"]]
+    end
+
+    subgraph ON[On-chain]
+        FW[QeltrunPayoutFirewall]
+        NOX[[NoxCompute<br/>protocol contract]]
+    end
+
+    REQ -- "1 openChangeRequest" --> FW
+    APP -- "2a encryptInput true, bool, firewall" --> GW
+    GW -- "handle + 137-byte input proof" --> APP
+    APP -- "2b sealApproval" --> FW
+    FW -- "Nox.fromExternal" --> NOX
+    NOX -- "checks app, owner, chain, type, expiry" --> FW
+    GW -- "3a gateway-signed decryption proof" --> REQ
+    REQ -- "3b settleApproval" --> FW
+    FW -- "Nox.publicDecrypt" --> NOX
+    NOX -- "checks the signature, returns the bit" --> FW
+    FW == "only a verified true" ==> OUT([Destination changed])
+
+    classDef chain fill:#0f1318,stroke:#7da7ff,color:#f4f7fa
+    classDef off fill:#0f1318,stroke:#222a33,color:#f4f7fa
+    classDef out fill:#0f1318,stroke:#3ddc97,color:#3ddc97
+    class FW,NOX chain
+    class REQ,APP,GW off
+    class OUT out
 ```
-  open ─────────────► seal ──────────────► settle ────────► destination changed
-  anyone              approver only        anyone
-  proves nothing      TEE-bound proof      gateway-signed proof
-```
 
-**1. Open.** Anyone may request that a vendor's destination move. Opening a request changes
-nothing — it records intent. The request id is derived *on chain* from the vendor, both wallets,
-the requester, a nonce, `block.chainid` and `address(this)`, so a caller cannot choose it and it
-cannot be replayed to another vendor, chain or deployment.
+Read it as three gates in series, each of which the previous stage cannot satisfy on its own:
 
-**2. Seal.** The vendor's registered approver encrypts a single bit inside the Nox TEE and
-submits it as `(externalEbool, handleProof)`. `Nox.fromExternal` hands the 137-byte proof to
-NoxCompute, which rejects it unless *all* of the following hold:
+| Stage | Who | What it proves | Gate after it |
+|---|---|---|---|
+| `openChangeRequest` | anyone | nothing — records intent | **shut** |
+| `sealApproval` | the registered approver, from the wallet that sealed | the approval bit exists inside the TEE, bound to this contract, this wallet, this chain, and not expired | **shut** — the contract holds a handle it cannot read |
+| `settleApproval` | anyone holding the proof | the gateway signed the revealed bit | **open, for one address only** |
 
-- the handle was minted for **this contract** (`app == msg.sender`),
-- the handle was minted for **the calling wallet** (`owner == msg.sender`),
-- the handle carries the right chain id and TEE type,
-- the proof has not expired.
+The details that make each stage hold:
 
-The contract stores the handle. **It does not learn the bit.** The gate is still shut.
+**Request ids are derived on chain**, from the vendor, both wallets, the requester, a nonce,
+`block.chainid` and `address(this)`. A caller cannot choose one, and one cannot be replayed to
+another vendor, chain or deployment.
 
-**3. Settle.** A gateway-signed decryption proof reveals the bit through `Nox.publicDecrypt`.
-Only a verified `true` moves the destination. Settlement is permissionless on purpose: the
-authority is the gateway's signature, not the caller's identity, so a relayer can carry the
-decision on chain without being trusted.
+**`Nox.fromExternal` rejects a handle** unless *all* of these hold — the handle was minted for
+**this contract** (`app == msg.sender`) and for **the calling wallet** (`owner == msg.sender`),
+it carries the right chain id and TEE type, and the proof has not expired. The approver must
+therefore both seal and send; a relayer cannot do it for them.
 
-After that, `isPayoutAllowed(vendorId, destination)` answers `true` for exactly one address —
-and the address it moved away from now needs its own approval.
+**Settlement is permissionless on purpose.** The authority is the gateway's signature, not the
+caller's identity, so anyone can carry the decision on chain without being trusted. A verified
+`false` settles the request as a recorded rejection.
+
+Afterwards `isPayoutAllowed(vendorId, destination)` answers `true` for exactly one address — and
+the address it moved away from now needs its own approval.
 
 ### Why Nox is load-bearing, not decorative
 
@@ -71,6 +100,12 @@ An attacker with **full control of every calldata argument** still cannot open t
 cannot mint a handle bound to this contract and the approver's wallet, and they cannot sign a
 decryption proof the gateway did not sign. That is the whole product, and it is Nox's property
 rather than ours.
+
+What that rests on: the Nox gateway's signing key, the deployed NoxCompute contract, and Intel
+TDX attestation. Compromise the gateway key and the model breaks — that is inherent to building
+on Nox, and [`docs/AUDIT.md`](docs/AUDIT.md) states it rather than working around it. Everything
+else is untrusted, including the requester, the relayer that submits settlement, and the
+TypeScript client in this repo.
 
 ## Run it
 
@@ -128,6 +163,17 @@ one. Nothing moves until a proof the gateway signed says it may.
 
 A control-room UI for the same flow — vendor record, gate verdict, state rail, Nox evidence and
 an action log.
+
+The same vendor, before and after a Nox-sealed approval. Both are live reads from a chain
+running the real NoxCompute; neither is a mock-up.
+
+| Blocked | Allowed |
+|---|---|
+| ![Payout blocked](docs/screenshots/01-blocked.png) | ![Payout allowed](docs/screenshots/02-allowed.png) |
+
+Note the left panel in both: the request id reads *needs a wallet*, because it is derived from
+the requester and none is connected. The page still shows the real gate verdict — reading never
+needs a wallet.
 
 ```bash
 pnpm run node                    # terminal 1: a real chain
