@@ -92,7 +92,6 @@ async function main(): Promise<void> {
     demoVendor: {
       label: DEMO_VENDOR_LABEL,
       vendorId: demoVendorId,
-      payoutWallet: DEMO_PAYOUT_WALLET,
       approver: approver.address,
     },
   };

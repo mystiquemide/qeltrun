@@ -4,7 +4,7 @@
 
 A fail-closed payout firewall for treasuries. A vendor's payment destination can only change if
 the vendor's registered approver sealed that decision inside an [iExec Nox](https://docs.iex.ec/nox-protocol/getting-started/welcome)
-TEE — bound to their wallet, bound to this contract, and revealed on chain by a gateway-signed
+TEE - bound to their wallet, bound to this contract, and revealed on chain by a gateway-signed
 proof. A compromised inbox cannot produce that. Nothing else opens the gate.
 
 ```bash
@@ -22,7 +22,7 @@ signature that looks familiar, an approver who is travelling.
 
 Treasuries moving on-chain inherit the same failure. Multisigs answer *"did enough keys sign
 this transfer?"*. They do not answer *"is this address still the one this vendor is owed money
-at?"* — because by the time a transfer is proposed, the destination has already been changed
+at?"* - because by the time a transfer is proposed, the destination has already been changed
 somewhere upstream.
 
 Qeltrun moves that question on chain and makes it unanswerable without proof.
@@ -68,8 +68,8 @@ Read it as three gates in series, each of which the previous stage cannot satisf
 
 | Stage | Who | What it proves | Gate after it |
 |---|---|---|---|
-| `openChangeRequest` | anyone | nothing — records intent | **shut** |
-| `sealApproval` | the registered approver, from the wallet that sealed | the approval bit exists inside the TEE, bound to this contract, this wallet, this chain, and not expired | **shut** — the contract holds a handle it cannot read |
+| `openChangeRequest` | anyone | nothing - records intent | **shut** |
+| `sealApproval` | the registered approver, from the wallet that sealed | the approval bit exists inside the TEE, bound to this contract, this wallet, this chain, and not expired | **shut** - the contract holds a handle it cannot read |
 | `settleApproval` | anyone holding the proof | the gateway signed the revealed bit | **open, for one address only** |
 
 The details that make each stage hold:
@@ -78,7 +78,7 @@ The details that make each stage hold:
 `block.chainid` and `address(this)`. A caller cannot choose one, and one cannot be replayed to
 another vendor, chain or deployment.
 
-**`Nox.fromExternal` rejects a handle** unless *all* of these hold — the handle was minted for
+**`Nox.fromExternal` rejects a handle** unless *all* of these hold - the handle was minted for
 **this contract** (`app == msg.sender`) and for **the calling wallet** (`owner == msg.sender`),
 it carries the right chain id and TEE type, and the proof has not expired. The approver must
 therefore both seal and send; a relayer cannot do it for them.
@@ -87,7 +87,7 @@ therefore both seal and send; a relayer cannot do it for them.
 caller's identity, so anyone can carry the decision on chain without being trusted. A verified
 `false` settles the request as a recorded rejection.
 
-Afterwards `isPayoutAllowed(vendorId, destination)` answers `true` for exactly one address — and
+Afterwards `isPayoutAllowed(vendorId, destination)` answers `true` for exactly one address - and
 the address it moved away from now needs its own approval.
 
 ### Why Nox is load-bearing, not decorative
@@ -102,7 +102,7 @@ decryption proof the gateway did not sign. That is the whole product, and it is 
 rather than ours.
 
 What that rests on: the Nox gateway's signing key, the deployed NoxCompute contract, and Intel
-TDX attestation. Compromise the gateway key and the model breaks — that is inherent to building
+TDX attestation. Compromise the gateway key and the model breaks - that is inherent to building
 on Nox, and [`docs/AUDIT.md`](docs/AUDIT.md) states it rather than working around it. Everything
 else is untrusted, including the requester, the relayer that submits settlement, and the
 TypeScript client in this repo.
@@ -131,21 +131,21 @@ checkpoint**, so it exits non-zero rather than printing a misleading transcript.
    payout wallet        0x1111111111111111111111111111111111111111
    approver             0x70997970C51812dc3A010C7d01b50e0d17dc79C8
 
-3. An invoice arrives asking for a new destination — the gate holds
+3. An invoice arrives asking for a new destination - the gate holds
    gate                 BLOCKED  APPROVAL_REQUIRED
 
-4. Open a change request — still blocked, because opening proves nothing
+4. Open a change request - still blocked, because opening proves nothing
    request id           0xef6a75892c94fb3ec28dc0df166729ac9f2439d2ab4d96158b1547419241f71a
    status               pending
    gate                 BLOCKED  APPROVAL_REQUIRED
 
-5. Approver seals the decision inside the TEE — still blocked, the bit is opaque
+5. Approver seals the decision inside the TEE - still blocked, the bit is opaque
    nox handle           0x0000007a690001f8ecf1020a1d7bed7b8fb5ca9679f1ca08b712b7c479e74a63
    input proof          0x70997970C51812dc3A010C7d… (137 bytes)
    status               sealed
    gate                 BLOCKED  APPROVAL_REQUIRED
 
-6. Reveal the bit with a gateway-signed decryption proof — the gate opens
+6. Reveal the bit with a gateway-signed decryption proof - the gate opens
    decrypted bit        true
    status               settled
    gate                 ALLOWED  DESTINATION_UNCHANGED
@@ -161,18 +161,18 @@ one. Nothing moves until a proof the gateway signed says it may.
 
 ## The dashboard
 
-A control-room UI for the same flow — vendor record, gate verdict, state rail, Nox evidence and
+A control-room UI for the same flow - vendor record, gate verdict, state rail, Nox evidence and
 an action log.
 
 The same vendor on **Ethereum Sepolia**, before and after a Nox-sealed approval. These are live
-reads from the deployed contract, against the real iExec gateway — neither is a mock-up.
+reads from the deployed contract, against the real iExec gateway - neither is a mock-up.
 
 | Blocked | Allowed |
 |---|---|
 | ![Payout blocked](docs/screenshots/01-blocked.png) | ![Payout allowed](docs/screenshots/02-allowed.png) |
 
 Note the left panel in both: the request id reads *needs a wallet*, because it is derived from
-the requester and none is connected. The page still shows the real gate verdict — reading never
+the requester and none is connected. The page still shows the real gate verdict - reading never
 needs a wallet.
 
 ```bash
@@ -182,7 +182,7 @@ pnpm --filter qeltrun-web dev    # terminal 3: http://localhost:3000
 ```
 
 **The UI never simulates anything.** It always talks to a real chain running the real
-NoxCompute — locally by default, or Sepolia once `NEXT_PUBLIC_SEPOLIA_FIREWALL` is set. The
+NoxCompute - locally by default, or Sepolia once `NEXT_PUBLIC_SEPOLIA_FIREWALL` is set. The
 only thing that differs between the two is where the approval bit gets sealed: on Sepolia that
 is iExec's gateway via `@iexec-nox/handle`; locally it is a route handler holding the key the
 local NoxCompute was initialized with. Both emit the same proof bytes, and the contract
@@ -198,7 +198,7 @@ Two things about it are deliberate:
   gas.
 
 `pnpm run export:abi` regenerates `web/lib/firewall-abi.ts` from the compiled artifact, and
-`pnpm run verify` runs it — so a stale ABI shows up as a dirty git tree rather than as a
+`pnpm run verify` runs it - so a stale ABI shows up as a dirty git tree rather than as a
 runtime failure.
 
 `web/deployment.local.json` is committed as a snapshot of a fresh Hardhat node, so the app
@@ -207,12 +207,12 @@ actually produced; expect it to show as modified, and do not commit that.
 
 ## Testing against the real protocol, not a mock
 
-There is no supported way to run Nox on a local chain, so most projects would mock it — and a
+There is no supported way to run Nox on a local chain, so most projects would mock it - and a
 mock you told to reject a forged proof proves nothing about whether the protocol would.
 
 `test/solidity/NoxLocalEnv.sol` does it differently. It deploys the **genuine `NoxCompute`**
 shipped in `@iexec-nox/nox-protocol-contracts` and `vm.etch`es its runtime code to
-`0x75C6AF4430cc474b1bb9b8540b7E46D6f8e1C685` — the address `Nox.noxComputeContract()` resolves
+`0x75C6AF4430cc474b1bb9b8540b7E46D6f8e1C685` - the address `Nox.noxComputeContract()` resolves
 to on chain 31337. Etching copies code but not storage, which sidesteps the constructor's
 `_disableInitializers()` and lets the harness initialize it with a gateway key the test
 controls.
@@ -235,11 +235,11 @@ pnpm run verify   # typecheck + unit tests + compile + Solidity tests
 | `test/*.test.ts` | 26 | Domain gate, request ids, proof encoding, API validation |
 
 The attack matrix enumerates threats we thought of. The invariant suite states properties that
-must hold for *any* sequence of calls — the gate never allows a second address, the payout
-wallet never moves without an approved settlement, a handle never binds to two requests — so a
+must hold for *any* sequence of calls - the gate never allows a second address, the payout
+wallet never moves without an approved settlement, a handle never binds to two requests - so a
 case nobody imagined still fails the build.
 
-A sample of the attack matrix — the full table is in [`docs/AUDIT.md`](docs/AUDIT.md):
+A sample of the attack matrix - the full table is in [`docs/AUDIT.md`](docs/AUDIT.md):
 
 | Attack | Result |
 |---|---|
@@ -261,7 +261,7 @@ Two findings worth surfacing here, because both were found by attacking our own 
 than by a linter:
 
 - **Sealed approvals could be replayed onto a different request.** A Nox input proof binds a
-  handle to `(owner, app, createdAt)` — it says nothing about *which* request the approval is
+  handle to `(owner, app, createdAt)` - it says nothing about *which* request the approval is
   for. Fixed with a one-shot handle ledger, so a handle can be spent exactly once.
 - **A stale approval could override a newer settlement.** Two requests open at once, the newer
   settles first, and the older one would then have silently overwritten it. Fixed by refusing
@@ -269,7 +269,7 @@ than by a linter:
 
 `pnpm run lint:sol` (solhint) and `pnpm run audit:deps` are clean. Slither reports three
 reentrancy findings, all in `sealApproval`, all the same root cause; they are analysed and
-accepted in the audit note rather than suppressed — the handle only exists after the external
+accepted in the audit note rather than suppressed - the handle only exists after the external
 call returns, so no ordering can write it first.
 
 CI runs `pnpm run audit:slither:ci`, which compares Slither's output against
@@ -281,13 +281,13 @@ the code it describes.
 
 [`feedback.md`](feedback.md) is a detailed developer-experience report from building this from
 an empty directory: what worked, six areas of friction with suggested fixes, and the one thing
-we would most like to see — a first-class local development story for Nox.
+we would most like to see - a first-class local development story for Nox.
 
 ## Layout
 
 ```
 contracts/
-  QeltrunPayoutFirewall.sol       the firewall — the only source of truth
+  QeltrunPayoutFirewall.sol       the firewall - the only source of truth
   local/LocalNoxCompute.sol       local-dev artifact for the real NoxCompute
 src/
   domain/                         request-id derivation and gate logic, mirroring the contract
@@ -318,7 +318,7 @@ implementations are pinned to one shared vector so they cannot silently drift.
 
 ## Live on Ethereum Sepolia
 
-The full lifecycle has been run end to end against the real iExec Nox gateway — not the local
+The full lifecycle has been run end to end against the real iExec Nox gateway - not the local
 one. The approval bit was encrypted by iExec's TEE, the handle was minted by their gateway, and
 the decryption proof that opened the gate carries their signature.
 
@@ -332,9 +332,9 @@ One complete change, blocked → sealed → settled → allowed:
 
 | Step | Transaction | Gate after it |
 |---|---|---|
-| `registerVendor` | [`0x26cde53c…`](https://sepolia.etherscan.io/tx/0x26cde53c78622066448b780b9849be9bb504a0072578eb9fa6313eacd8a660fa) | — |
-| `openChangeRequest` | [`0xb0e7ac81…`](https://sepolia.etherscan.io/tx/0xb0e7ac811e0fd6add28ea4d3a6ef69b072b587dfb809eccfc40d47e4cd824637) | **blocked** — `APPROVAL_REQUIRED` |
-| `sealApproval` | [`0x2df81b1a…`](https://sepolia.etherscan.io/tx/0x2df81b1a0c0765c20ca473e837f716bbcb8028952ff10defbbc0ad9148e3cd9e) | **blocked** — the bit is sealed |
+| `registerVendor` | [`0x26cde53c…`](https://sepolia.etherscan.io/tx/0x26cde53c78622066448b780b9849be9bb504a0072578eb9fa6313eacd8a660fa) | - |
+| `openChangeRequest` | [`0xb0e7ac81…`](https://sepolia.etherscan.io/tx/0xb0e7ac811e0fd6add28ea4d3a6ef69b072b587dfb809eccfc40d47e4cd824637) | **blocked** - `APPROVAL_REQUIRED` |
+| `sealApproval` | [`0x2df81b1a…`](https://sepolia.etherscan.io/tx/0x2df81b1a0c0765c20ca473e837f716bbcb8028952ff10defbbc0ad9148e3cd9e) | **blocked** - the bit is sealed |
 | `settleApproval` | [`0x9cd32859…`](https://sepolia.etherscan.io/tx/0x9cd32859621e6e7a5fc1abf30c8981b7526e30ecabc4677990a79ffa581487a0) | **allowed** |
 
 The screenshots above are that exact change: the destination in both is `0x3333…3333`.
@@ -363,24 +363,66 @@ pnpm run deploy:sepolia
 ```
 
 The script refuses to deploy to a chain Nox does not support and verifies the deployment
-resolves the expected NoxCompute — a mismatch would leave every `sealApproval` failing proof
+resolves the expected NoxCompute - a mismatch would leave every `sealApproval` failing proof
 validation. Pass the deployed address as `applicationContract` to `encryptInput`; Nox binds
 every input proof to it.
 
-## Scope
+## How this differs
 
-Built for the iExec WTF hackathon. Deliberately out of scope, rather than overlooked:
+| Alternative | What it does | Why Qeltrun is not that |
+|---|---|---|
+| Safe / multisig | Asks *did enough keys sign this transfer?* | It never asks whether the destination is still correct. By the time signers see a transfer, the address was already changed upstream. Qeltrun gates the change, not the transfer. |
+| An owner-controlled allowlist contract | An admin sets which addresses may be paid | The admin key becomes the thing worth phishing. Qeltrun has no owner, no admin and no `setPayoutWallet`, so there is nothing to compromise into a wallet change. |
+| Manual callback verification | Finance phones the vendor on a known number | Works, and it is exactly the human control that fails under pressure. Qeltrun makes the check a state transition the chain enforces instead of a habit. |
+| A generic "encrypted value on chain" Nox demo | Stores a confidential number and reveals it | The encryption is the whole point of the demo. Here the sealed bit is an authorization the contract cannot bypass. Delete Nox and the contract has no working code path at all. |
 
-- **Approver rotation.** Real functionality a production system needs. Adding it without a
-  second approval path would create exactly the hijack this contract exists to prevent.
-- **Custody.** Qeltrun answers *"may this destination be paid?"*. Enforcement lives in whatever
-  moves the money.
-- **Real-world bank account verification.** Vendor identities here are wallet-signed. We do not
-  claim to verify that anyone owns a bank account.
+## Honest limitations
+
+Read this before trusting anything above.
+
+- **Not audited.** [`docs/AUDIT.md`](docs/AUDIT.md) is self-review. Solhint, Slither, an attack
+  matrix and a fuzz suite are not a third-party audit, and none of them is presented as one.
+- **Fuzzing is shallow.** 256 runs per property is a default, not a campaign. There is no
+  symbolic execution and no formal proof of the state machine.
+- **Compromise the Nox gateway key and the model breaks.** That is inherent to building on Nox.
+  It is stated rather than mitigated.
+- **Testnet only.** Live on Ethereum Sepolia. Nothing here has held real money.
+- **No approver rotation.** A lost approver key permanently freezes a vendor's changes, and a
+  typo at registration permanently sets the wrong approver. Adding a naive setter would create
+  exactly the hijack this contract exists to prevent, so the limitation is the safer trade.
+- **Vendor registration is permissionless and one-shot.** No owner means no privileged key to
+  steal. Re-registration is blocked, so a vendor cannot be hijacked, but a first registration
+  with the wrong approver cannot be undone.
+- **No custody.** Qeltrun answers *"may this destination be paid?"*. Enforcement lives in
+  whatever moves the money.
+- **No real-world bank account verification.** Vendor identities here are wallet-signed. There
+  is no claim that anyone owns a bank account.
+- **No gas benchmarking.** Costs are unmeasured beyond correctness.
 
 Nox is TEE-based confidential computing (Intel TDX). It is not FHE and it is not zero-knowledge,
 and nothing here claims otherwise.
 
+## What's real
+
+Nox is never mocked. The Solidity tests run genuine `NoxCompute` bytecode and forge real proof
+bytes, the dashboard always talks to a live chain, and the Sepolia lifecycle above was sealed
+and settled by iExec's actual gateway.
+
+The one substitution, stated plainly: on chain 31337 the gateway *service* is a local route
+handler holding the key that local `NoxCompute` was initialized with. It signs the same EIP-712
+digests and emits the same proof layout, and the contract verifies it with the same code, but
+it is our process rather than iExec's. On Sepolia there is no substitution at all.
+
+Pending: the demo video, and a hosted build of the dashboard. Run it locally with the three
+commands under [The dashboard](#the-dashboard).
+
+```bash
+pnpm run verify   # typecheck, unit tests, compile, Solidity tests, ABI export, doc counts
+pnpm run demo     # full lifecycle, asserts every checkpoint
+```
+
+Built for the iExec WTF hackathon.
+
 ---
 
-MIT licensed.
+[MIT licensed](LICENSE).

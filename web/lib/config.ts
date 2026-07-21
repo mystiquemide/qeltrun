@@ -23,16 +23,17 @@ export type Deployment = {
   chainId: SupportedChainId;
   firewall: Address;
   noxCompute: Address;
-  /// The destination the dashboard tests the gate against — the address an attacker would have
+  /// The destination the dashboard tests the gate against, the address an attacker would have
   /// put on a fraudulent invoice. Must not be the vendor's current payout wallet, or the demo
   /// opens on "allowed" and there is nothing to show.
   proposedWallet?: Address;
   /// Present only for the local chain, where our own route handler plays the gateway role.
   gateway?: Address;
+  /// No `payoutWallet` here on purpose. The dashboard reads the current payout wallet from the
+  /// chain, so a configured copy could only ever go stale and contradict it.
   demoVendor: {
     label: string;
     vendorId: Hex;
-    payoutWallet: Address;
     approver: Address;
   };
 };
@@ -40,7 +41,6 @@ export type Deployment = {
 const sepoliaFirewall = process.env.NEXT_PUBLIC_SEPOLIA_FIREWALL as Address | undefined;
 const sepoliaVendorLabel = process.env.NEXT_PUBLIC_SEPOLIA_VENDOR_LABEL ?? 'vendor:northwind-logistics';
 const sepoliaVendorId = process.env.NEXT_PUBLIC_SEPOLIA_VENDOR_ID as Hex | undefined;
-const sepoliaPayoutWallet = process.env.NEXT_PUBLIC_SEPOLIA_PAYOUT_WALLET as Address | undefined;
 const sepoliaApprover = process.env.NEXT_PUBLIC_SEPOLIA_APPROVER as Address | undefined;
 const sepoliaProposedWallet = process.env.NEXT_PUBLIC_SEPOLIA_PROPOSED_WALLET as Address | undefined;
 
@@ -49,10 +49,7 @@ export const SEPOLIA_NOX_COMPUTE = '0x24Ef36Ec5b626D7DCD09a98F3083c2758F0F77bF' 
 
 export const deployments: Record<number, Deployment> = {
   [localDeployment.chainId]: localDeployment as Deployment,
-  ...(sepoliaFirewall !== undefined &&
-  sepoliaVendorId !== undefined &&
-  sepoliaPayoutWallet !== undefined &&
-  sepoliaApprover !== undefined
+  ...(sepoliaFirewall !== undefined && sepoliaVendorId !== undefined && sepoliaApprover !== undefined
     ? {
         [sepolia.id]: {
           chainId: sepolia.id,
@@ -62,7 +59,6 @@ export const deployments: Record<number, Deployment> = {
           demoVendor: {
             label: sepoliaVendorLabel,
             vendorId: sepoliaVendorId,
-            payoutWallet: sepoliaPayoutWallet,
             approver: sepoliaApprover,
           },
         } satisfies Deployment,
