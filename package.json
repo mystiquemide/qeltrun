@@ -22,7 +22,8 @@
     "audit:slither:ci": "pnpm run compile && tsx scripts/slither-baseline.ts",
     "audit:slither:update": "pnpm run compile && tsx scripts/slither-baseline.ts --update",
     "audit:deps": "pnpm audit --audit-level moderate",
-    "check:docs": "tsx scripts/check-doc-counts.ts"
+    "check:docs": "tsx scripts/check-doc-counts.ts",
+    "verify:live": "tsx scripts/verify-live.ts"
   },
   "dependencies": {
     "@iexec-nox/handle": "0.1.0-beta.13",

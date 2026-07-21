@@ -75,12 +75,46 @@ export class NoxApprovalProvider implements ApprovalProvider {
   async revealApproval(handle: Hex): Promise<RevealedApproval> {
     // Only succeeds once the firewall has called `Nox.allowPublicDecryption` on this handle,
     // which it does inside `sealApproval`.
-    const { value, decryptionProof } = await this.client.publicDecrypt(handle);
+    const { value, decryptionProof } = await this.decryptWhenIndexed(handle);
 
     if (typeof value !== 'boolean') {
       throw new Error(`NOX_UNEXPECTED_PLAINTEXT_TYPE:${typeof value}`);
     }
 
     return { handle, value, decryptionProof: decryptionProof as Hex };
+  }
+
+  /// The gateway reads ACL state from a subgraph, not from the chain, so for a short window
+  /// after `sealApproval` confirms it still answers `access_denied: not publicly decryptable`
+  /// for a handle that is already publicly decryptable on chain. Observed on Sepolia: the call
+  /// fails immediately after the transaction and succeeds within about a minute.
+  ///
+  /// Retrying only that specific error keeps a genuine permission failure loud — if the handle
+  /// really was never marked, this still gives up rather than hanging.
+  private async decryptWhenIndexed(
+    handle: Hex,
+    attempts = 8,
+    delayMs = 5000,
+  ): Promise<{ value: unknown; decryptionProof: string }> {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await this.client.publicDecrypt(handle);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const stillIndexing = message.includes('not publicly decryptable');
+
+        if (!stillIndexing || attempt >= attempts) {
+          throw stillIndexing
+            ? new Error(
+                `NOX_HANDLE_NOT_INDEXED:${handle}: the gateway still reports this handle as not ` +
+                  `publicly decryptable after ${attempts} attempts. Confirm the sealing ` +
+                  'transaction succeeded and that the contract called Nox.allowPublicDecryption.',
+              )
+            : error;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
   }
 }

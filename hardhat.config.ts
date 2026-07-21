@@ -1,6 +1,19 @@
 import hardhatEthers from '@nomicfoundation/hardhat-ethers';
 import { configVariable, defineConfig } from 'hardhat/config';
 
+/// Hardhat requires a `0x`-prefixed private key, but wallets and key managers hand out bare
+/// 64-character hex about as often as prefixed. Normalizing here beats making anyone edit a
+/// secrets file, and the failure it prevents ("invalid private key") does not say what is wrong.
+///
+/// Read directly rather than through `configVariable` because that defers resolution and cannot
+/// be transformed. If the variable is absent the array is empty, so local commands still work
+/// and only the networks that need a signer complain.
+function deployerAccounts(): string[] {
+  const key = process.env.PRIVATE_KEY?.trim();
+  if (key === undefined || key === '') return [];
+  return [key.startsWith('0x') ? key : `0x${key}`];
+}
+
 export default defineConfig({
   plugins: [hardhatEthers],
   paths: {
@@ -54,7 +67,7 @@ export default defineConfig({
       type: 'http',
       chainType: 'l1',
       url: configVariable('SEPOLIA_RPC_URL'),
-      accounts: [configVariable('PRIVATE_KEY')],
+      accounts: deployerAccounts(),
     },
   },
 });

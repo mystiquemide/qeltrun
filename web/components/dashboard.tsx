@@ -9,15 +9,14 @@ import { StateRail, type RailStep } from './state-rail';
 import { Button, Field, Mono, Panel, Tag, truncate } from './primitives';
 import { approvalTransportFor, type SealedApproval } from '@/lib/approvals';
 import {
+  DEFAULT_PROPOSED_WALLET,
+  defaultChainId,
   deploymentFor,
-  deployments,
   explorerAddressUrl,
   explorerTxUrl,
-  hardhatLocal,
   isLocalChain,
   type Address,
   type Hex,
-  type SupportedChainId,
 } from '@/lib/config';
 import { FIREWALL_ABI } from '@/lib/firewall-abi';
 import {
@@ -29,12 +28,7 @@ import {
   useVendorView,
 } from '@/lib/use-firewall';
 
-/// The destination the demo tries to pay. Deliberately not the vendor's registered wallet:
-/// this is the address an attacker would have put on a fraudulent invoice.
-const PROPOSED_WALLET = '0x2222222222222222222222222222222222222222' as Address;
 const NONCE = 1n;
-
-const DEFAULT_CHAIN_ID = Number(Object.keys(deployments)[0] ?? hardhatLocal.id) as SupportedChainId;
 
 export function Dashboard() {
   const { address, chainId: walletChainId, isConnected } = useAccount();
@@ -45,9 +39,14 @@ export function Dashboard() {
 
   // Reading never needs a wallet. When one is connected we follow its chain; otherwise we read
   // whichever deployment is configured, so the dashboard is live before anyone clicks connect.
-  const activeChainId = isConnected && walletChainId !== undefined ? walletChainId : DEFAULT_CHAIN_ID;
+  const activeChainId = isConnected && walletChainId !== undefined ? walletChainId : defaultChainId();
   const deployment = deploymentFor(activeChainId);
   const publicClient = usePublicClient({ chainId: deployment?.chainId });
+
+  // The destination the demo tries to pay — the address an attacker would have put on a
+  // fraudulent invoice. Per-deployment, because once a chain has settled a change this has to
+  // move on, or the dashboard opens on "allowed" with nothing left to demonstrate.
+  const PROPOSED_WALLET = deployment?.proposedWallet ?? DEFAULT_PROPOSED_WALLET;
 
   const [log, setLog] = useState<LogEntry[]>([]);
   const [busy, setBusy] = useState<string | null>(null);

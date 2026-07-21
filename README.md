@@ -164,8 +164,8 @@ one. Nothing moves until a proof the gateway signed says it may.
 A control-room UI for the same flow — vendor record, gate verdict, state rail, Nox evidence and
 an action log.
 
-The same vendor, before and after a Nox-sealed approval. Both are live reads from a chain
-running the real NoxCompute; neither is a mock-up.
+The same vendor on **Ethereum Sepolia**, before and after a Nox-sealed approval. These are live
+reads from the deployed contract, against the real iExec gateway — neither is a mock-up.
 
 | Blocked | Allowed |
 |---|---|
@@ -315,6 +315,42 @@ The TypeScript layer deliberately **mirrors** the contract rather than duplicati
 authority. `deriveRequestId` and `decidePayout` exist so a client can show a verdict before
 spending gas; the contract remains the only thing that decides. Both request-id
 implementations are pinned to one shared vector so they cannot silently drift.
+
+## Live on Ethereum Sepolia
+
+The full lifecycle has been run end to end against the real iExec Nox gateway — not the local
+one. The approval bit was encrypted by iExec's TEE, the handle was minted by their gateway, and
+the decryption proof that opened the gate carries their signature.
+
+| | |
+|---|---|
+| Firewall | [`0x164cbF7DC39f650F7528cE2208d93fB94404e986`](https://sepolia.etherscan.io/address/0x164cbF7DC39f650F7528cE2208d93fB94404e986) |
+| NoxCompute | [`0x24Ef36Ec5b626D7DCD09a98F3083c2758F0F77bF`](https://sepolia.etherscan.io/address/0x24Ef36Ec5b626D7DCD09a98F3083c2758F0F77bF) |
+| Vendor | `vendor:northwind-logistics` |
+
+One complete change, blocked → sealed → settled → allowed:
+
+| Step | Transaction | Gate after it |
+|---|---|---|
+| `registerVendor` | [`0x26cde53c…`](https://sepolia.etherscan.io/tx/0x26cde53c78622066448b780b9849be9bb504a0072578eb9fa6313eacd8a660fa) | — |
+| `openChangeRequest` | [`0xb0e7ac81…`](https://sepolia.etherscan.io/tx/0xb0e7ac811e0fd6add28ea4d3a6ef69b072b587dfb809eccfc40d47e4cd824637) | **blocked** — `APPROVAL_REQUIRED` |
+| `sealApproval` | [`0x2df81b1a…`](https://sepolia.etherscan.io/tx/0x2df81b1a0c0765c20ca473e837f716bbcb8028952ff10defbbc0ad9148e3cd9e) | **blocked** — the bit is sealed |
+| `settleApproval` | [`0x9cd32859…`](https://sepolia.etherscan.io/tx/0x9cd32859621e6e7a5fc1abf30c8981b7526e30ecabc4677990a79ffa581487a0) | **allowed** |
+
+The screenshots above are that exact change: the destination in both is `0x3333…3333`.
+
+Reproduce it:
+
+```bash
+export $(grep -v '^#' .env | xargs)
+export FIREWALL_ADDRESS=0x164cbF7DC39f650F7528cE2208d93fB94404e986
+pnpm run verify:live
+```
+
+`pnpm run demo` proves the contract logic against genuine NoxCompute bytecode but signs proofs
+with a local key. `pnpm run verify:live` is the only thing that exercises iExec's actual gateway
+service, and it found something nothing else could: see the note on subgraph indexing in
+[`feedback.md`](feedback.md).
 
 ## Deploying
 
