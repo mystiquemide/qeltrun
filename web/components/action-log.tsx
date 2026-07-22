@@ -21,10 +21,14 @@ const TONE: Record<LogTone, string> = {
 };
 
 export function ActionLog({ entries }: { entries: LogEntry[] }) {
-  const endRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
+  /// Scroll the log's own container, never the document. `scrollIntoView` walks up and scrolls
+  /// every scrollable ancestor including the page, so on a narrow viewport the first logged line
+  /// yanked the whole console away from the top before anyone had touched it.
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'nearest' });
+    const el = scrollRef.current;
+    if (el !== null) el.scrollTop = el.scrollHeight;
   }, [entries.length]);
 
   if (entries.length === 0) {
@@ -36,7 +40,10 @@ export function ActionLog({ entries }: { entries: LogEntry[] }) {
   }
 
   return (
-    <div className="ledger max-h-[220px] space-y-1 overflow-y-auto text-[12px] leading-relaxed">
+    <div
+      ref={scrollRef}
+      className="tnum max-h-[300px] space-y-1 overflow-y-auto text-[12px] leading-relaxed"
+    >
       {entries.map((entry) => (
         <div key={entry.id} className="flex gap-2">
           <span className="shrink-0 text-[var(--color-ink-muted)]">[{entry.at}]</span>
@@ -58,7 +65,6 @@ export function ActionLog({ entries }: { entries: LogEntry[] }) {
           </span>
         </div>
       ))}
-      <div ref={endRef} />
     </div>
   );
 }

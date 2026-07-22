@@ -38,7 +38,7 @@ import {
   ROLE_LABELS,
 } from '@/lib/use-firewall';
 import { ActionLog, type LogEntry, type LogTone } from '@/components/action-log';
-import { Button, Field, Mono, Note, Region, Tag, truncate } from './primitives';
+import { Button, Field, Mono, Note, Region, Stat, StatStrip, Tag, truncate } from './primitives';
 import { Reviewers } from './reviewers';
 
 const NONCE = 1n;
@@ -266,43 +266,54 @@ export function Console() {
   const canSignal = role !== undefined && status === 'collecting' && busy === null;
 
   return (
-    <main className="mx-auto max-w-[1240px] px-5 py-8">
-      <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Link href="/" className="text-[13px] text-[var(--color-ink-dim)] hover:text-[var(--color-ink)]">
-            Qeltrun
-          </Link>
-          <h1 className="mt-1 text-[19px] font-semibold tracking-tight">Console</h1>
-        </div>
+    <>
+      {/* Terminal chrome. A thin fixed bar carrying identity, network and wallet, the way both
+          reference terminals anchor theirs, so the working surface below never has to. */}
+      <header className="sticky top-0 z-30 border-b border-[var(--color-panel-border)] bg-[var(--color-bg)]/95 backdrop-blur">
+        <div className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-3 px-5 py-2.5">
+          <div className="flex items-baseline gap-2.5">
+            <Link
+              href="/"
+              className="text-[13px] font-semibold tracking-tight text-[var(--color-ink)] hover:text-[var(--color-nox)]"
+            >
+              Qeltrun
+            </Link>
+            <span className="text-[11px] uppercase tracking-[0.14em] text-[var(--color-ink-muted)]">
+              Console
+            </span>
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          {paused === true && <Tag tone="warning">halted</Tag>}
-          {deployment !== undefined && (
-            <Tag tone={isLocalChain(deployment.chainId) ? 'warning' : 'nox'}>
-              {isLocalChain(deployment.chainId) ? 'local chain' : `chain ${deployment.chainId}`}
-            </Tag>
-          )}
-          {role !== undefined && <Tag tone="approved">{ROLE_LABELS[role]}</Tag>}
-          {isConnected && address !== undefined ? (
-            <button
-              type="button"
-              onClick={() => disconnect()}
-              className="ledger rounded-md border border-[var(--color-panel-border)] px-2.5 py-1.5 text-[12px] text-[var(--color-ink-dim)] hover:border-[var(--color-ink-muted)]"
-            >
-              {truncate(address, 6, 4)}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => injected !== undefined && connect({ connector: injected })}
-              disabled={injected === undefined}
-              className="rounded-md border border-[var(--color-nox)] px-3 py-1.5 text-[12px] font-medium text-[var(--color-nox)] hover:bg-[var(--color-nox)]/10 disabled:opacity-40"
-            >
-              Connect wallet
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-2.5">
+            {paused === true && <Tag tone="warning">halted</Tag>}
+            {deployment !== undefined && (
+              <Tag tone={isLocalChain(deployment.chainId) ? 'warning' : 'nox'}>
+                {isLocalChain(deployment.chainId) ? 'local chain' : `chain ${deployment.chainId}`}
+              </Tag>
+            )}
+            {role !== undefined && <Tag tone="approved">{ROLE_LABELS[role]}</Tag>}
+            {isConnected && address !== undefined ? (
+              <button
+                type="button"
+                onClick={() => disconnect()}
+                className="tnum rounded-md border border-[var(--color-panel-border)] bg-[var(--color-panel-raised)] px-2.5 py-1.5 text-[12px] text-[var(--color-ink-dim)] hover:border-[var(--color-ink-muted)]"
+              >
+                {truncate(address, 6, 4)}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => injected !== undefined && connect({ connector: injected })}
+                disabled={injected === undefined}
+                className="rounded-md bg-[var(--color-nox)] px-3 py-1.5 text-[12px] font-medium text-[#06070a] hover:brightness-110 disabled:opacity-40"
+              >
+                Connect wallet
+              </button>
+            )}
+          </div>
         </div>
       </header>
+
+      <main className="mx-auto max-w-[1480px] px-5 py-5">
 
       {wrongChain ? (
         <div className="rounded-md border border-[var(--color-warning)]/40 p-5">
@@ -331,9 +342,32 @@ export function Console() {
           </Note>
         </div>
       ) : (
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)]">
+        <>
+        {/* The numbers an operator scans first, on one line. Both reference terminals lead with a
+            strip like this rather than making you read down a column. */}
+        <StatStrip>
+          <Stat label="Gate" tone={gatePending ? undefined : allowed ? 'approved' : 'blocked'}>
+            {gatePending ? 'reading' : allowed ? 'ALLOWED' : 'BLOCKED'}
+          </Stat>
+          <Stat label="Vendor">{deployment.demoVendor.label.replace('vendor:', '')}</Stat>
+          <Stat label="Cleared address">
+            {vendor === undefined ? 'reading' : truncate(vendor.payoutWallet, 6, 4)}
+          </Stat>
+          <Stat label="Positions" tone={signalCount === 3 ? 'approved' : undefined}>
+            {rid === undefined ? '0 of 3' : `${signalCount} of 3`}
+          </Stat>
+          <Stat label="Status">{rid === undefined ? 'no request' : status}</Stat>
+          <Stat label="Epoch">
+            {vendor === undefined ? 'reading' : String(vendor.approverEpoch)}
+          </Stat>
+          <Stat label="Firewall" tone={paused === true ? 'warning' : undefined}>
+            {paused === true ? 'HALTED' : 'live'}
+          </Stat>
+        </StatStrip>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)]">
           {/* Left: who is being paid, and by whose authority */}
-          <div className="space-y-10">
+          <div className="space-y-4">
             <Region title="Vendor">
               <Field label="Name">
                 <Mono value={deployment.demoVendor.label} />
@@ -379,10 +413,15 @@ export function Console() {
           </div>
 
           {/* Centre: the verdict and the actions */}
-          <div className="space-y-10">
+          <div className="space-y-4">
+            {/* The gate is the one panel that bleeds light. `color` is set so the bloom and the
+                glow both inherit whatever state it is currently reporting. */}
             <section
-              className="rounded-md border p-6"
-              style={{ borderColor: gatePending ? 'var(--color-panel-border)' : accent }}
+              className={`tpanel p-5 ${gatePending ? '' : 'bloom'}`}
+              style={{
+                borderColor: gatePending ? 'var(--color-panel-border)' : accent,
+                color: gatePending ? 'var(--color-ink-muted)' : accent,
+              }}
               aria-live="polite"
             >
               <div className="flex items-center gap-2.5">
@@ -396,8 +435,9 @@ export function Console() {
               </div>
 
               <p
-                className="mt-3 text-[26px] font-semibold leading-tight tracking-tight"
-                style={{ color: gatePending ? 'var(--color-ink-muted)' : accent }}
+                className={`mt-3 text-[26px] font-semibold leading-tight tracking-tight ${
+                  gatePending ? '' : 'glow'
+                }`}
               >
                 {gatePending ? 'Reading gate' : copy.headline}
               </p>
@@ -408,7 +448,7 @@ export function Console() {
               <div className="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-t border-[var(--color-divider)] pt-3">
                 <span className="text-[12px] text-[var(--color-ink-muted)]">Address tested</span>
                 <Mono value={truncate(PROPOSED, 12, 8)} title={PROPOSED} />
-                <span className="ledger text-[11px] text-[var(--color-ink-muted)]">{reason}</span>
+                <span className="tnum text-[11px] text-[var(--color-ink-muted)]">{reason}</span>
               </div>
             </section>
 
@@ -469,7 +509,7 @@ export function Console() {
           </div>
 
           {/* Right: the Nox evidence and the log */}
-          <div className="space-y-10">
+          <div className="space-y-4">
             <Region
               title="Nox evidence"
               aside={
@@ -486,13 +526,17 @@ export function Console() {
                 <Mono value={rid === undefined ? 'needs a wallet' : `${signalCount} of 3`} />
               </Field>
               <Field label="Aggregate">
-                <span className="ledger text-[13px] text-[var(--color-ink-dim)]">
+                <span className="tnum text-[13px] text-[var(--color-ink-dim)]">
                   {handleState(rid, aggregateHandle as Hex | undefined, 'sealed')}
                 </span>
               </Field>
               <Field label="Verdict">
+                {/* The verdict is the only thing the enclave ever makes readable, so it is the
+                    only handle that lights up. */}
                 <span
-                  className="ledger text-[13px]"
+                  className={`tnum text-[13px] ${
+                    isSet(verdictHandle as Hex | undefined) ? 'glow' : ''
+                  }`}
                   style={{
                     color:
                       isSet(verdictHandle as Hex | undefined)
@@ -515,8 +559,10 @@ export function Console() {
             </Region>
           </div>
         </div>
+        </>
       )}
-    </main>
+      </main>
+    </>
   );
 }
 

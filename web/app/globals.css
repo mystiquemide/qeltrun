@@ -25,18 +25,29 @@
   --color-hero-scrim-mid: rgba(11, 16, 28, 0.88);
   --color-hero-scrim-to: rgba(11, 16, 28, 0.55);
 
-  /* Console surface */
-  --color-bg: #080a0d;
-  --color-panel: #0f1318;
-  --color-panel-border: #222a33;
-  --color-divider: #1a2028;
-  --color-ink: #f4f7fa;
-  --color-ink-dim: #8c98a8;
-  --color-ink-muted: #5e6a78;
-  --color-blocked: #f25f5c;
-  --color-approved: #3ddc97;
-  --color-warning: #f7b955;
-  --color-nox: #7da7ff;
+  /* Console surface: a phosphor enclave readout.
+
+     Captured live from Modal, which runs pure #000000 with ink at rgb(221,255,220) - a
+     green-tinted white, not a neutral one - over a phosphor green accent. That tint is the whole
+     trick: on a CRT nothing is ever neutral white, because every lit pixel comes off the same
+     phosphor. It is also the one aesthetic that earns itself here rather than being decoration,
+     since the product's claim is that reviewer positions are sealed inside an enclave and only
+     the verdict is ever lit up.
+
+     The generic dark-dashboard blues this replaced (#06070a canvas, #7da7ff accent) said nothing
+     about what the product does. */
+  --color-bg: #000000;
+  --color-panel: #080b09;
+  --color-panel-raised: #0e130f;
+  --color-panel-border: #1c2a1f;
+  --color-divider: #142016;
+  --color-ink: #ddffdc;
+  --color-ink-dim: #7d9a7e;
+  --color-ink-muted: #4d6650;
+  --color-blocked: #ff5555;
+  --color-approved: #4ade80;
+  --color-warning: #ffb000;
+  --color-nox: #4ade80;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
@@ -77,6 +88,61 @@ h3 {
   color: var(--color-ink);
   min-height: 100vh;
   min-height: 100dvh;
+  position: relative;
+  /* Mono is the default face here, not the exception. A terminal does not switch typeface to
+     explain itself, and the console's prose is only ever a line or two at a time. The marketing
+     pages keep the sans, which is what stops the two surfaces blurring into one another. */
+  font-family: var(--font-mono);
+}
+
+/* Scanlines. Two pixels on, two off, at 3% - enough to read as a phosphor tube under the type
+   without ever competing with it. `pointer-events: none` so it cannot eat a click, and it sits
+   under the sticky header rather than over it, or the header would look fogged.
+
+   Hidden entirely for reduced motion, since a fine repeating pattern is exactly what triggers
+   visual discomfort for some people. */
+.surface-console::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 3%) 0px,
+    rgb(255 255 255 / 3%) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface-console::before {
+    display: none;
+  }
+}
+
+/* Lit phosphor. A live value does not just sit there in colour, it bleeds a little into the black
+   around it, which is what separates a CRT from a flat dark theme. Applied to the gate verdict and
+   sealed states only - putting it on body text would smear the whole page. */
+.glow {
+  text-shadow:
+    0 0 8px color-mix(in srgb, currentcolor 55%, transparent),
+    0 0 24px color-mix(in srgb, currentcolor 25%, transparent);
+}
+
+/* The bloom behind the gate panel, coloured by whatever state it is reporting. */
+.bloom {
+  position: relative;
+}
+
+.bloom::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 40px -8px color-mix(in srgb, currentcolor 45%, transparent);
 }
 
 /* Addresses, request ids, handles and proofs are all read character by character,
@@ -90,6 +156,45 @@ h3 {
 .panel {
   background: var(--color-panel);
   border: 1px solid var(--color-panel-border);
+}
+
+/* An instrument panel on the enclave readout. Barely lifted off pure black, with a faint green
+   inner edge rather than a white one - on a phosphor surface even the bezel highlight is tinted.
+   Sits above the scanline layer so its content stays crisp. */
+.tpanel {
+  position: relative;
+  z-index: 2;
+  background: var(--color-panel);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgb(221 255 220 / 4%),
+    0 1px 2px rgb(0 0 0 / 60%);
+}
+
+/* Numeric columns must align on the digit, not the glyph, or a changing value shifts its
+   neighbours. This is the single most terminal-feeling detail in the reference captures. */
+.tnum {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-variant-ligatures: none;
+}
+
+/* A value that just changed flashes its state colour and settles. Live terminals all do this; it
+   is how an operator catches an update they were not looking directly at. */
+@media (prefers-reduced-motion: no-preference) {
+  .flash-live {
+    animation: flash-live 900ms ease-out;
+  }
+}
+
+@keyframes flash-live {
+  0% {
+    background-color: color-mix(in srgb, currentcolor 22%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 
 .hairline {

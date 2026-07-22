@@ -65,12 +65,12 @@ function Seat({
   const sealed = submitted === true;
 
   return (
-    <li className="flex items-center justify-between gap-3 py-3">
+    <li className="flex items-center justify-between gap-3 py-2.5">
       <div className="min-w-0">
         <p className="flex items-center gap-2 text-[13px] text-[var(--color-ink)]">
           {ROLE_LABELS[role]}
           {isYou && (
-            <span className="rounded border border-[var(--color-nox)]/40 px-1 py-px text-[9px] font-medium uppercase tracking-[0.1em] text-[var(--color-nox)]">
+            <span className="rounded border border-[var(--color-nox)]/40 bg-[var(--color-nox)]/10 px-1 py-px text-[9px] font-medium uppercase tracking-[0.1em] text-[var(--color-nox)]">
               you
             </span>
           )}
@@ -81,10 +81,20 @@ function Seat({
         />
       </div>
 
+      {/* A filled dot plus the word. Colour alone never carries the state, but on a dense dark
+          surface the dot is what the eye catches first. */}
       <span
-        className="shrink-0 text-[12px]"
+        className={`flex shrink-0 items-center gap-1.5 text-[12px] ${sealed ? 'glow' : ''}`}
         style={{ color: sealed ? 'var(--color-approved)' : 'var(--color-ink-muted)' }}
       >
+        <span
+          className="h-1.5 w-1.5 rounded-full"
+          style={{
+            background: sealed ? 'var(--color-approved)' : 'var(--color-ink-muted)',
+            opacity: sealed ? 1 : 0.5,
+            boxShadow: sealed ? '0 0 6px var(--color-approved)' : 'none',
+          }}
+        />
         {requestId === undefined ? 'no request' : sealed ? 'sealed' : 'waiting'}
       </span>
     </li>
