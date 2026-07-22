@@ -13,7 +13,7 @@ import {
 } from 'wagmi';
 
 import { FIREWALL_V2_ABI } from '@qeltrun/abi';
-import { signalTransportFor, type SealedSignal } from '@/lib/approvals';
+import { signalTransportFor } from '@/lib/approvals';
 import {
   DEFAULT_PROPOSED_WALLET,
   defaultChainId,
@@ -32,6 +32,7 @@ import {
   useOpenRequestId,
   usePaused,
   useRequest,
+  useSignalHandles,
   useVendorView,
   useVerdictHandle,
   ROLE_LABELS,
@@ -88,7 +89,6 @@ export function Console() {
 
   const [log, setLog] = useState<LogEntry[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
-  const [sealed, setSealed] = useState<SealedSignal[]>([]);
   const [waiting, setWaiting] = useState<string | null>(null);
 
   const append = useCallback((text: string, tone: LogTone = 'info', href?: string) => {
@@ -117,6 +117,11 @@ export function Console() {
   const { data: request } = useRequest(deployment, rid);
   const { data: verdictHandle } = useVerdictHandle(deployment, rid);
   const { data: aggregateHandle } = useAggregateHandle(deployment, rid);
+  // The local gateway needs the exact three signal handles back to compute the verdict, and
+  // whoever clicks settle is often not any of the three reviewers - settlement is permissionless
+  // - so their own browser tab never saw the other two seal. `PrivateSignalSubmitted` is the
+  // shared source, same reasoning as `useOpenRequestId` above.
+  const { signalHandles, refetch: refetchSignalHandles } = useSignalHandles(deployment, rid);
 
   const status = statusFrom((request as { status?: number } | undefined)?.status);
   const signalCount = Number((request as { signalCount?: number } | undefined)?.signalCount ?? 0);
@@ -188,7 +193,6 @@ export function Console() {
         applicationContract: deployment.firewall,
         approve,
       });
-      setSealed((prev) => [...prev.filter((p) => p.handle !== s.handle), s]);
       append(`Handle ${truncate(s.handle)} minted. Nobody can read it, including the contract.`, 'nox');
 
       const hash = await writeContractAsync({
@@ -201,6 +205,7 @@ export function Console() {
       await publicClient?.waitForTransactionReceipt({ hash });
       append('Position sealed on chain.', 'nox', txUrl(hash));
       await gate.refetch();
+      await refetchSignalHandles();
     });
 
   const settle = () =>
@@ -211,11 +216,16 @@ export function Console() {
       if (handle === undefined || handle === ZERO_HANDLE) {
         throw new Error('No verdict sealed yet. All three positions are needed first.');
       }
+      if (signalHandles.length !== 3) {
+        throw new Error(
+          `Only found ${signalHandles.length} of 3 sealed signal handles on chain. Refresh and try again.`,
+        );
+      }
 
       append('Asking the gateway to decrypt the verdict', 'nox');
       const revealed = await transport.revealVerdict(
         handle,
-        sealed.map((s) => s.handle),
+        signalHandles,
         {
           onRetry: (attempt, attempts) => {
             // The gateway resolves ACL from a subgraph and computes confidentially, so it can

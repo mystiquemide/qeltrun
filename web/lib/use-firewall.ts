@@ -172,6 +172,47 @@ export function useOpenRequestId(deployment: Deployment | undefined) {
   return { requestId: data ?? undefined, refetch };
 }
 
+/**
+ * The sealed signal handles for a request, found from chain rather than kept in local state.
+ *
+ * The local gateway computes the verdict from the three plaintexts it minted, so it needs the
+ * exact three handles back to look them up - it does not just use whatever it has minted most
+ * recently, since a dev server accumulates handles across every run against it. A handle sealed
+ * by one reviewer only ever lived in that reviewer's own browser tab, so whoever ends up clicking
+ * settle - permissionless, and often a different wallet from any of the three reviewers - would
+ * otherwise only have their own handle, if any. `PrivateSignalSubmitted` is the shared source,
+ * the same fix `useOpenRequestId` already made for the request id itself.
+ */
+export function useSignalHandles(deployment: Deployment | undefined, requestId: Hex | undefined) {
+  const publicClient = usePublicClient({ chainId: deployment?.chainId });
+  const enabled = deployment !== undefined && publicClient !== undefined && requestId !== undefined;
+
+  const { data, refetch } = useQuery({
+    queryKey: ['qeltrun', 'signal-handles', deployment?.chainId, deployment?.firewall, requestId],
+    enabled,
+    refetchInterval: 4000,
+    queryFn: async (): Promise<Hex[]> => {
+      if (!enabled) return [];
+      let fromBlock = 0n;
+      if (!isLocalChain(deployment.chainId)) {
+        const head = await publicClient.getBlockNumber();
+        fromBlock = head > REQUEST_LOOKBACK ? head - REQUEST_LOOKBACK : 0n;
+      }
+      const logs = await publicClient.getContractEvents({
+        abi,
+        address: deployment.firewall,
+        eventName: 'PrivateSignalSubmitted',
+        args: { requestId },
+        fromBlock,
+        toBlock: 'latest',
+      });
+      return logs.map((log) => log.args.handle as Hex);
+    },
+  });
+
+  return { signalHandles: data ?? [], refetch };
+}
+
 export type VendorView = {
   payoutWallet: Address;
   approver: Address;
