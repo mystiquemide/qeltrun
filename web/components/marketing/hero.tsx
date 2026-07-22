@@ -49,7 +49,7 @@ export function Hero() {
           <div className="mt-10 flex flex-wrap items-center gap-3">
             <Link
               href="/app"
-              className="rounded-md bg-[var(--color-accent)] px-6 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[var(--color-accent-solid)]"
+              className="rounded-md bg-[var(--color-hero-accent)] px-6 py-3.5 text-[15px] font-semibold text-black transition-colors hover:bg-[var(--color-hero-accent-hover)]"
             >
               Open the console
             </Link>

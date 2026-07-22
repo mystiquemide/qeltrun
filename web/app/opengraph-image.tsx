@@ -17,34 +17,36 @@ export default function OpengraphImage() {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          background: '#080a0d',
-          color: '#f4f7fa',
+          /* Satori cannot read CSS variables, so the console palette is inlined here. These must
+             be kept in step with the console tokens in `globals.css`. */
+          background: '#000000',
+          color: '#ddffdc',
           padding: '72px 80px',
-          fontFamily: 'sans-serif',
+          fontFamily: 'monospace',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 12, height: 12, borderRadius: 999, background: '#f25f5c' }} />
-          <div style={{ fontSize: 22, letterSpacing: 4, color: '#8c98a8', textTransform: 'uppercase' }}>
+          <div style={{ width: 12, height: 12, borderRadius: 999, background: '#ff5555' }} />
+          <div style={{ fontSize: 22, letterSpacing: 4, color: '#7d9a7e', textTransform: 'uppercase' }}>
             Payout gate
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ fontSize: 92, fontWeight: 700, letterSpacing: -2 }}>Qeltrun</div>
-          <div style={{ fontSize: 40, color: '#f4f7fa' }}>Before funds move, prove the change.</div>
-          <div style={{ fontSize: 26, color: '#8c98a8', maxWidth: 940, lineHeight: 1.4 }}>
+          <div style={{ fontSize: 40, color: '#ddffdc' }}>Before funds move, prove the change.</div>
+          <div style={{ fontSize: 26, color: '#7d9a7e', maxWidth: 940, lineHeight: 1.4 }}>
             A vendor payment destination changes only when an iExec Nox TEE-sealed approval proves
             it should. Nothing else opens the gate.
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 24 }}>
-          <div style={{ color: '#f25f5c' }}>BLOCKED</div>
-          <div style={{ color: '#5e6a78' }}>→</div>
-          <div style={{ color: '#7da7ff' }}>NOX SEALED</div>
-          <div style={{ color: '#5e6a78' }}>→</div>
-          <div style={{ color: '#3ddc97' }}>ALLOWED</div>
+          <div style={{ color: '#ff5555' }}>BLOCKED</div>
+          <div style={{ color: '#4d6650' }}>→</div>
+          <div style={{ color: '#4ade80' }}>NOX SEALED</div>
+          <div style={{ color: '#4d6650' }}>→</div>
+          <div style={{ color: '#4ade80' }}>ALLOWED</div>
         </div>
       </div>
     ),

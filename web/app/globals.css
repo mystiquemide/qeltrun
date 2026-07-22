@@ -6,24 +6,35 @@
    bounded rail with hatched gutters. The console is the dark finance control room the product
    has always been. Colour carries one meaning only, the state of the gate. */
 @theme {
-  /* Marketing surface */
-  --color-canvas: #ffffff;
-  --color-band: #fafbfc;
-  --color-ink-900: #1a233c;
-  --color-ink-600: #6b7180;
-  --color-ink-400: #9aa0b0;
-  --color-accent: #015efb;
-  --color-accent-solid: #276cf0;
-  --color-rule: #e6e8ec;
+  /* Marketing surface.
 
-  /* Hero surface. The one place the marketing page goes dark, so it needs its own on-dark ink
-     ramp rather than borrowing the console's. Named because nothing may inline a raw value. */
-  --color-hero-bg: #141c2e;
-  --color-hero-ink: #c4cee0;
-  --color-hero-dim: #8fa2c4;
-  --color-hero-scrim-from: rgba(11, 16, 28, 0.96);
-  --color-hero-scrim-mid: rgba(11, 16, 28, 0.88);
-  --color-hero-scrim-to: rgba(11, 16, 28, 0.55);
+     One signature colour across both surfaces. The accent used to be a blue that had nothing to
+     do with the console, which left the site and the product reading as two companies. It is now
+     the same phosphor hue the console runs, darkened for a white background - a bright #4ade80
+     on white is both illegible and reads as a success toast rather than a brand. Same hue,
+     adjusted for surface lightness, which is the rule the old blue pair already followed. */
+  --color-canvas: #ffffff;
+  --color-band: #fafbfa;
+  --color-ink-900: #13211a;
+  --color-ink-600: #64726a;
+  --color-ink-400: #96a29a;
+  --color-accent: #067a3c;
+  --color-accent-solid: #0a6b37;
+  --color-rule: #e5e9e6;
+
+  /* Hero surface. The one place the marketing page goes dark, and the visitor's first sight of
+     the product, so it is the console's surface rather than a third palette: true black, phosphor
+     ink, same enclave. Clicking through to /app should feel like the same instrument. */
+  --color-hero-bg: #000000;
+  --color-hero-ink: #cfe8d0;
+  --color-hero-dim: #8fb894;
+  /* The hero is a dark surface, so its call to action takes the bright phosphor rather than the
+     accent darkened for white. Same colour, picked for the background it actually sits on. */
+  --color-hero-accent: #4ade80;
+  --color-hero-accent-hover: #6ee79b;
+  --color-hero-scrim-from: rgba(0, 0, 0, 0.96);
+  --color-hero-scrim-mid: rgba(0, 0, 0, 0.88);
+  --color-hero-scrim-to: rgba(0, 0, 0, 0.55);
 
   /* Console surface: a phosphor enclave readout.
 
