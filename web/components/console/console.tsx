@@ -109,15 +109,10 @@ export function Console() {
   const noxCompute = useNoxComputeAddress(deployment);
   const { data: paused } = usePaused(deployment);
 
-  const { data: requestId } = useDerivedRequestId(
-    deployment,
-    vendor?.payoutWallet,
-    PROPOSED,
-    address,
-    NONCE,
-    vendor?.approverEpoch,
-  );
-  const rid = requestId as Hex | undefined;
+  // Derived off `msg.sender`, a request id only ever resolves for the wallet that opened it - the
+  // other two reviewers would each hash a different id and see no request at all. Reading
+  // `ChangeRequestOpened` instead gives every reviewer, and a visitor with no wallet, the same id.
+  const { requestId: rid, refetch: refetchRequestId } = useOpenRequestId(deployment);
 
   const { data: request } = useRequest(deployment, rid);
   const { data: verdictHandle } = useVerdictHandle(deployment, rid);
@@ -179,6 +174,7 @@ export function Console() {
       await publicClient?.waitForTransactionReceipt({ hash });
       append('Request open. The gate has not moved.', 'info', txUrl(hash));
       await gate.refetch();
+      await refetchRequestId();
     });
 
   const submitSignal = (approve: boolean) =>
