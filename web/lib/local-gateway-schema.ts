@@ -14,7 +14,28 @@ export type SealRequest = {
 };
 
 export type RevealRequest = { action: 'reveal'; handle: Hex };
-export type GatewayRequest = SealRequest | RevealRequest;
+
+/// v2. One reviewer sealing an `euint16` position.
+export type SealSignalRequest = {
+  action: 'sealSignal';
+  reviewer: Address;
+  applicationContract: Address;
+  signal: number;
+};
+
+/// v2. The verdict handle comes from `verdictHandle(requestId)` on chain, and the signal handles
+/// identify which three positions it aggregates, so the gateway can compute the value it signs.
+export type RevealVerdictRequest = {
+  action: 'revealVerdict';
+  verdictHandle: Hex;
+  signalHandles: Hex[];
+};
+
+export type GatewayRequest =
+  | SealRequest
+  | RevealRequest
+  | SealSignalRequest
+  | RevealVerdictRequest;
 
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const BYTES32 = /^0x[0-9a-fA-F]{64}$/;
@@ -60,5 +81,40 @@ export function parseGatewayRequest(body: unknown): GatewayRequest {
     return { action: 'reveal', handle: handle as Hex };
   }
 
-  throw new InvalidRequest('INVALID_ACTION: expected "seal" or "reveal"');
+  if (action === 'sealSignal') {
+    const { reviewer, applicationContract, signal } = body as Record<string, unknown>;
+    if (typeof signal !== 'number' || !Number.isInteger(signal) || signal < 0 || signal > 65535) {
+      throw new InvalidRequest('INVALID_SIGNAL: expected an integer within uint16');
+    }
+    return {
+      action: 'sealSignal',
+      reviewer: requireAddress(reviewer, 'REVIEWER'),
+      applicationContract: requireAddress(applicationContract, 'APPLICATION_CONTRACT'),
+      signal,
+    };
+  }
+
+  if (action === 'revealVerdict') {
+    const { verdictHandle, signalHandles } = body as Record<string, unknown>;
+    if (typeof verdictHandle !== 'string' || !BYTES32.test(verdictHandle)) {
+      throw new InvalidRequest('INVALID_VERDICT_HANDLE: expected a 32-byte hex handle');
+    }
+    if (!Array.isArray(signalHandles) || signalHandles.length !== 3) {
+      throw new InvalidRequest('INVALID_SIGNAL_HANDLES: expected exactly three handles');
+    }
+    for (const h of signalHandles) {
+      if (typeof h !== 'string' || !BYTES32.test(h)) {
+        throw new InvalidRequest('INVALID_SIGNAL_HANDLES: expected 32-byte hex handles');
+      }
+    }
+    return {
+      action: 'revealVerdict',
+      verdictHandle: verdictHandle as Hex,
+      signalHandles: signalHandles as Hex[],
+    };
+  }
+
+  throw new InvalidRequest(
+    'INVALID_ACTION: expected "seal", "reveal", "sealSignal" or "revealVerdict"',
+  );
 }

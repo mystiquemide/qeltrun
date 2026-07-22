@@ -44,6 +44,27 @@ function providerHolding(handle: Hex): LocalGatewayApprovalProvider | undefined 
   return undefined;
 }
 
+/**
+ * One shared instance for the three reviewer flow.
+ *
+ * v1 keys a provider per approver, because a handle is bound to the single wallet allowed to
+ * seal. v2 has three reviewers sealing into one request and the verdict is computed from all
+ * three plaintexts together, so they have to live in the same instance. `sealSignal` performs no
+ * caller check of its own; the contract decides who may sign.
+ */
+let signalProvider: LocalGatewayApprovalProvider | undefined;
+
+function v2Provider(): LocalGatewayApprovalProvider {
+  signalProvider ??= new LocalGatewayApprovalProvider({
+    chainId: LOCAL_CHAIN_ID,
+    gatewayPrivateKey: LOCAL_GATEWAY_KEY,
+    /// Unused on the v2 path. The config requires it, so it is explicitly the zero address to
+    /// make clear nothing here is bound to one approver.
+    approver: '0x0000000000000000000000000000000000000000',
+  });
+  return signalProvider;
+}
+
 export async function POST(request: Request): Promise<NextResponse> {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'LOCAL_GATEWAY_DISABLED' }, { status: 404 });
@@ -60,6 +81,22 @@ export async function POST(request: Request): Promise<NextResponse> {
           applicationContract: body.applicationContract,
           approve: body.approve,
         }),
+      );
+    }
+
+    if (body.action === 'sealSignal') {
+      return NextResponse.json(
+        await v2Provider().sealSignal({
+          reviewer: body.reviewer,
+          applicationContract: body.applicationContract,
+          signal: body.signal,
+        }),
+      );
+    }
+
+    if (body.action === 'revealVerdict') {
+      return NextResponse.json(
+        await v2Provider().revealVerdict(body.verdictHandle, body.signalHandles),
       );
     }
 

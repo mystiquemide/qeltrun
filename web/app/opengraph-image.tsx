@@ -3,7 +3,7 @@ import { ImageResponse } from 'next/og';
 /// Generated rather than a checked-in PNG, so the card cannot drift from the product copy and
 /// there is no binary asset to keep in sync with the palette in `globals.css`.
 export const runtime = 'edge';
-export const alt = 'Qeltrun — Before funds move, prove the change';
+export const alt = 'Qeltrun: Before funds move, prove the change';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 

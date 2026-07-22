@@ -29,19 +29,24 @@ export type Deployment = {
   proposedWallet?: Address;
   /// Present only for the local chain, where our own route handler plays the gateway role.
   gateway?: Address;
-  /// No `payoutWallet` here on purpose. The dashboard reads the current payout wallet from the
+  /// Optional Safe module, present where the treasury path is wired.
+  safeModule?: Address;
+  /// No `payoutWallet` here on purpose. The console reads the current payout wallet from the
   /// chain, so a configured copy could only ever go stale and contradict it.
+  ///
+  /// The three reviewer addresses are deliberately absent for the same reason. They come from
+  /// `getVendor`, and they change: the Sepolia approver has already rotated once, so a configured
+  /// copy would now be wrong.
   demoVendor: {
     label: string;
     vendorId: Hex;
-    approver: Address;
   };
 };
 
-const sepoliaFirewall = process.env.NEXT_PUBLIC_SEPOLIA_FIREWALL as Address | undefined;
+const sepoliaFirewall = process.env.NEXT_PUBLIC_SEPOLIA_FIREWALL_V2 as Address | undefined;
 const sepoliaVendorLabel = process.env.NEXT_PUBLIC_SEPOLIA_VENDOR_LABEL ?? 'vendor:northwind-logistics';
 const sepoliaVendorId = process.env.NEXT_PUBLIC_SEPOLIA_VENDOR_ID as Hex | undefined;
-const sepoliaApprover = process.env.NEXT_PUBLIC_SEPOLIA_APPROVER as Address | undefined;
+const sepoliaSafeModule = process.env.NEXT_PUBLIC_SEPOLIA_SAFE_MODULE as Address | undefined;
 const sepoliaProposedWallet = process.env.NEXT_PUBLIC_SEPOLIA_PROPOSED_WALLET as Address | undefined;
 
 /// NoxCompute on Ethereum Sepolia, per `@iexec-nox/handle`'s network config.
@@ -49,17 +54,17 @@ export const SEPOLIA_NOX_COMPUTE = '0x24Ef36Ec5b626D7DCD09a98F3083c2758F0F77bF' 
 
 export const deployments: Record<number, Deployment> = {
   [localDeployment.chainId]: localDeployment as Deployment,
-  ...(sepoliaFirewall !== undefined && sepoliaVendorId !== undefined && sepoliaApprover !== undefined
+  ...(sepoliaFirewall !== undefined && sepoliaVendorId !== undefined
     ? {
         [sepolia.id]: {
           chainId: sepolia.id,
           firewall: sepoliaFirewall,
           noxCompute: SEPOLIA_NOX_COMPUTE,
           ...(sepoliaProposedWallet !== undefined ? { proposedWallet: sepoliaProposedWallet } : {}),
+          ...(sepoliaSafeModule !== undefined ? { safeModule: sepoliaSafeModule } : {}),
           demoVendor: {
             label: sepoliaVendorLabel,
             vendorId: sepoliaVendorId,
-            approver: sepoliaApprover,
           },
         } satisfies Deployment,
       }

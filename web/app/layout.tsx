@@ -1,9 +1,22 @@
 import type { Metadata, Viewport } from 'next';
+import { IBM_Plex_Mono, Inter } from 'next/font/google';
 
 import './globals.css';
 import { Providers } from './providers';
 
-const TITLE = 'Qeltrun — Before funds move, prove the change';
+/// Self-hosted at build time by `next/font`, so there is no render-blocking request to Google and
+/// no layout shift on load. Display headlines run at -1.9% tracking, which needs the real Inter
+/// rather than a system fallback.
+const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' });
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  display: 'swap',
+  variable: '--font-plex-mono',
+});
+
+const TITLE = 'Qeltrun: Before funds move, prove the change';
 const DESCRIPTION =
   'A fail-closed payout firewall. A vendor payment destination changes only when an iExec Nox TEE-sealed approval, bound to the approver’s wallet and to the contract, proves it should.';
 
@@ -35,14 +48,16 @@ export const metadata: Metadata = {
   icons: { icon: '/icon', shortcut: '/icon', apple: '/icon' },
 };
 
+/// The landing page is the first thing anyone loads, and it is light. The console sets its own
+/// dark surface through `.surface-console`.
 export const viewport: Viewport = {
-  themeColor: '#080a0d',
-  colorScheme: 'dark',
+  themeColor: '#ffffff',
+  colorScheme: 'light',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${plexMono.variable}`}>
       <body>
         <Providers>{children}</Providers>
       </body>

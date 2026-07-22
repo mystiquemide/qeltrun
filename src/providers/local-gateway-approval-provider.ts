@@ -15,8 +15,15 @@ export const LOCAL_NOX_COMPUTE = '0x75C6AF4430cc474b1bb9b8540b7E46D6f8e1C685' as
 
 /// TEE type tag for `ebool`. `TEEType.Bool` is enum index 0.
 const TEE_TYPE_BOOL = 0;
+/// TEE type tag for `euint16`, enum index 5. Matches `TEE_TYPE_UINT16` in
+/// `test/solidity/NoxLocalEnv.sol`, and it is the byte you can read out of any live signal
+/// handle on Sepolia at position 5.
+const TEE_TYPE_UINT16 = 5;
 /// Bit 0 of the attrs byte. Set means a confidential handle rather than a public one.
 const ATTR_IS_UNIQUE_HANDLE = 0x01;
+
+/// `QeltrunPayoutFirewallV2.REQUIRED_SIGNALS`. The verdict is `aggregate == 3`.
+const REQUIRED_SIGNALS = 3;
 
 const EIP712_DOMAIN = {
   name: 'NoxCompute',
@@ -66,6 +73,9 @@ export class LocalGatewayApprovalProvider implements ApprovalProvider {
   private readonly approver: Address;
   private readonly noxComputeAddress: Hex;
   private readonly plaintexts = new Map<Hex, boolean>();
+  /// Reviewer signal values, kept separately from the v1 bool plaintexts because the verdict is
+  /// computed from them rather than looked up.
+  private readonly signals = new Map<Hex, number>();
   private nonce = 0;
 
   constructor(config: LocalGatewayApprovalProviderConfig) {
@@ -139,6 +149,104 @@ export class LocalGatewayApprovalProvider implements ApprovalProvider {
     return { handle, value, decryptionProof: concatHex([signature, decryptedResult]) };
   }
 
+  // ============ v2, three reviewer signals ============
+
+  /// Whether this instance minted the signal handle.
+  knowsSignal(handle: Hex): boolean {
+    return this.signals.has(handle);
+  }
+
+  /**
+   * Seal one reviewer's `euint16` position.
+   *
+   * Unlike v1 there is no approver check here, because any of the three reviewers may seal and
+   * the contract decides which addresses are allowed. The wallet that seals must still be the
+   * wallet that sends the transaction, since NoxCompute compares the proof owner against the
+   * firewall's `msg.sender`.
+   */
+  async sealSignal(input: {
+    reviewer: Address;
+    applicationContract: Address;
+    signal: number;
+  }): Promise<SealedApproval> {
+    if (!Number.isInteger(input.signal) || input.signal < 0 || input.signal > 65535) {
+      throw new Error(`INVALID_UINT16_SIGNAL:${input.signal}`);
+    }
+
+    const handle = this.mintHandle(TEE_TYPE_UINT16);
+    this.signals.set(handle, input.signal);
+
+    const createdAt = BigInt(Math.floor(Date.now() / 1000));
+    const signature = await this.gateway.signTypedData({
+      domain: this.domain(),
+      types: HANDLE_PROOF_TYPES,
+      primaryType: 'HandleProof',
+      message: {
+        handle,
+        owner: input.reviewer,
+        app: input.applicationContract,
+        createdAt,
+      },
+    });
+
+    return {
+      handle,
+      handleProof: concatHex([
+        input.reviewer,
+        input.applicationContract,
+        numberToHex(createdAt, { size: 32 }),
+        signature,
+      ]),
+      owner: input.reviewer,
+      applicationContract: input.applicationContract,
+    };
+  }
+
+  /**
+   * Sign a decryption proof for the aggregate verdict.
+   *
+   * The verdict handle is produced by NoxCompute's confidential arithmetic, so it is supplied by
+   * the caller after reading `verdictHandle(requestId)` off chain. This mirrors
+   * `NoxLocalEnv.buildDecryptionProof(handle, value)` in the Solidity harness: the gateway signs
+   * a value it computed, and only the enclave's confidentiality is simulated, never the approval
+   * logic.
+   *
+   * The value is computed exactly as `submitPrivateSignal` does it, clamp anything above one to
+   * zero, sum, then `aggregate == REQUIRED_SIGNALS`. Getting this wrong would make the local path
+   * disagree with the contract, which is the one thing it must never do.
+   */
+  async revealVerdict(
+    verdictHandle: Hex,
+    signalHandles: readonly Hex[],
+  ): Promise<RevealedApproval> {
+    if (signalHandles.length !== REQUIRED_SIGNALS) {
+      throw new Error(`LOCAL_EXPECTED_${REQUIRED_SIGNALS}_SIGNALS:got:${signalHandles.length}`);
+    }
+
+    let aggregate = 0;
+    for (const handle of signalHandles) {
+      const value = this.signals.get(handle);
+      if (value === undefined) throw new Error(`LOCAL_UNKNOWN_SIGNAL_HANDLE:${handle}`);
+      // `Nox.select(Nox.le(signal, 1), signal, 0)`.
+      aggregate += value <= 1 ? value : 0;
+    }
+
+    const approved = aggregate === REQUIRED_SIGNALS;
+    const decryptedResult = approved ? '0x01' : '0x00';
+    const signature = await this.gateway.signTypedData({
+      domain: this.domain(),
+      types: DECRYPTION_PROOF_TYPES,
+      primaryType: 'DecryptionProof',
+      message: { handle: verdictHandle, decryptedResult },
+    });
+
+    return {
+      handle: verdictHandle,
+      value: approved,
+      decryptionProof: concatHex([signature, decryptedResult]),
+    };
+  }
+
   private domain() {
     return {
       ...EIP712_DOMAIN,
@@ -147,12 +255,16 @@ export class LocalGatewayApprovalProvider implements ApprovalProvider {
     } as const;
   }
 
-  /// Handle layout: [0]=version [1-4]=chainId [5]=teeType [6]=attrs [7-31]=pre-handle.
   private mintBoolHandle(): Hex {
+    return this.mintHandle(TEE_TYPE_BOOL);
+  }
+
+  /// Handle layout: [0]=version [1-4]=chainId [5]=teeType [6]=attrs [7-31]=pre-handle.
+  private mintHandle(teeType: number): Hex {
     const bytes = new Uint8Array(32);
     bytes[0] = 0;
     new DataView(bytes.buffer).setUint32(1, this.chainId, false);
-    bytes[5] = TEE_TYPE_BOOL;
+    bytes[5] = teeType;
     bytes[6] = ATTR_IS_UNIQUE_HANDLE;
 
     const preHandle = toBytes(

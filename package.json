@@ -12,7 +12,7 @@
     "inspect:nox": "tsx scripts/inspect-nox.ts",
     "demo": "hardhat run scripts/demo.ts --network hardhatMainnet",
     "test:sol": "hardhat test solidity",
-    "verify": "pnpm run typecheck && pnpm test && pnpm run compile && pnpm run test:sol && pnpm run export:abi && pnpm run check:docs",
+    "verify": "pnpm run typecheck && pnpm test && pnpm run compile && pnpm run test:sol && pnpm run export:abi && pnpm run export:abi:v2 && pnpm run check:docs",
     "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
     "deploy:v2:sepolia": "hardhat run scripts/deploy-v2.ts --network sepolia",
     "deploy:safe:sepolia": "tsx scripts/deploy-safe.ts",

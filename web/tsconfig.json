@@ -33,6 +33,12 @@
       ],
       "@qeltrun/local-gateway": [
         "../src/providers/local-gateway-approval-provider.ts"
+      ],
+      "@qeltrun/nox-decrypt": [
+        "../src/providers/decrypt-when-indexed.ts"
+      ],
+      "@qeltrun/abi": [
+        "../src/contracts/generated/firewall-v2-abi.ts"
       ]
     }
   },

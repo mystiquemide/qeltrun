@@ -1,8 +1,31 @@
 @import 'tailwindcss';
 
-/* Qeltrun reads as a finance control room, not a crypto landing page: dark, dense, precise.
-   No gradients, no glows. Colour carries one meaning only — the state of the gate. */
+/* Two surfaces, one system.
+
+   The marketing pages are a light engineering drawing: white canvas, navy ink, one blue, and a
+   bounded rail with hatched gutters. The console is the dark finance control room the product
+   has always been. Colour carries one meaning only, the state of the gate. */
 @theme {
+  /* Marketing surface */
+  --color-canvas: #ffffff;
+  --color-band: #fafbfc;
+  --color-ink-900: #1a233c;
+  --color-ink-600: #6b7180;
+  --color-ink-400: #9aa0b0;
+  --color-accent: #015efb;
+  --color-accent-solid: #276cf0;
+  --color-rule: #e6e8ec;
+
+  /* Hero surface. The one place the marketing page goes dark, so it needs its own on-dark ink
+     ramp rather than borrowing the console's. Named because nothing may inline a raw value. */
+  --color-hero-bg: #141c2e;
+  --color-hero-ink: #c4cee0;
+  --color-hero-dim: #8fa2c4;
+  --color-hero-scrim-from: rgba(11, 16, 28, 0.96);
+  --color-hero-scrim-mid: rgba(11, 16, 28, 0.88);
+  --color-hero-scrim-to: rgba(11, 16, 28, 0.55);
+
+  /* Console surface */
   --color-bg: #080a0d;
   --color-panel: #0f1318;
   --color-panel-border: #222a33;
@@ -15,20 +38,49 @@
   --color-warning: #f7b955;
   --color-nox: #7da7ff;
 
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
 }
 
 html,
 body {
-  background: var(--color-bg);
-  color: var(--color-ink);
+  background: var(--color-canvas);
+  color: var(--color-ink-900);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* `clip` rather than `hidden`: `hidden` silently creates a scroll container, which breaks
+     `position: sticky` on the nav and swallows anchor scrolling. */
+  overflow-x: clip;
 }
 
-/* Addresses, request ids, handles and proofs are all read character by character —
-   they belong in mono with loose tracking, never in the UI face. */
+/* The nav is sticky and 64px tall, so an anchor jump would park the target heading underneath it.
+   Offsetting the scroll target is the fix; adding top padding to the section would move it in the
+   normal reading flow too. */
+section[id] {
+  scroll-margin-top: 96px;
+}
+
+/* Long words in display type break inside themselves rather than pushing the layout wide.
+   Addresses and hashes are the realistic offenders on this site. */
+h1,
+h2,
+h3 {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* The console opts into the dark surface. Scoped rather than global, so the marketing pages and
+   the product share one stylesheet without fighting over `body`. */
+.surface-console {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Addresses, request ids, handles and proofs are all read character by character,
+   so they belong in mono with loose tracking, never in the UI face. */
 .ledger {
   font-family: var(--font-mono);
   font-variant-ligatures: none;
@@ -42,6 +94,42 @@ body {
 
 .hairline {
   border-color: var(--color-divider);
+}
+
+/* The bounded rail. Content sits inside 1240px with hairline edges, and the outer gutters carry
+   a diagonal hatch, which is what makes the page read as a drawing rather than a document. */
+.rail {
+  max-width: 1240px;
+  margin-inline: auto;
+  border-inline: 1px solid var(--color-rule);
+}
+
+.hatch {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8'><path d='M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2' stroke='%23e6e8ec' stroke-width='1'/></svg>");
+}
+
+/* Marketing headlines are tight, and tracking scales with size, so it is set per step rather
+   than globally. This matches how the reference does it. */
+.h-display {
+  font-size: clamp(42px, 7vw, 86px);
+  line-height: 1.02;
+  letter-spacing: -0.022em;
+  font-weight: 700;
+}
+
+.h-section {
+  font-size: clamp(30px, 3.6vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.kicker {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-400);
 }
 
 @media (prefers-reduced-motion: no-preference) {
