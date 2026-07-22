@@ -54,7 +54,9 @@
   --color-divider: #142016;
   --color-ink: #ddffdc;
   --color-ink-dim: #7d9a7e;
-  --color-ink-muted: #4d6650;
+  /* 4.97:1 on the pure-black canvas, clears AA for the 10px uppercase labels that use it. The
+     first phosphor pass set this to #4d6650, which measured 3.33 and failed. */
+  --color-ink-muted: #638366;
   --color-blocked: #ff5555;
   --color-approved: #4ade80;
   --color-warning: #ffb000;

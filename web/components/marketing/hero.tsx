@@ -53,12 +53,12 @@ export function Hero() {
             >
               Open the console
             </Link>
-            <a
-              href="#receipts"
+            <Link
+              href="/proof"
               className="rounded-md border border-white/25 px-6 py-3.5 text-[15px] font-medium text-white transition-colors hover:border-white/60"
             >
               Read the receipts
-            </a>
+            </Link>
           </div>
 
           <p className="mt-8 text-[13px] text-[var(--color-hero-dim)]">
