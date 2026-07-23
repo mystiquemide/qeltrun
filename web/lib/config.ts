@@ -95,6 +95,15 @@ export function isLocalChain(chainId: number | undefined): boolean {
   return chainId === hardhatLocal.id;
 }
 
+/// A name a visitor recognises, not the raw chain id. `supportedChains` only ever adds real
+/// networks here as they go live, so this stays a short, explicit list rather than a generic
+/// chain-id-to-name registry.
+export function chainName(chainId: number | undefined): string {
+  if (chainId === sepolia.id) return 'Sepolia';
+  if (chainId === hardhatLocal.id) return 'Local chain';
+  return `Chain ${chainId ?? '?'}`;
+}
+
 export function explorerTxUrl(chainId: number, hash: Hex): string | undefined {
   return chainId === sepolia.id ? `https://sepolia.etherscan.io/tx/${hash}` : undefined;
 }

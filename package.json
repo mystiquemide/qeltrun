@@ -47,11 +47,12 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ethers": "^4.0.15",
+    "@openzeppelin/contracts-upgradeable": "5.6.1",
     "@safe-global/protocol-kit": "8.0.4",
     "@types/node": "^22.13.0",
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",
     "hardhat": "^3.11.0",
-    "next": "^15.5.20",
+    "next": "^15.5.21",
     "solhint": "^6.2.3",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",

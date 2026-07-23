@@ -15,6 +15,7 @@ import { FIREWALL_V2_ABI } from '@qeltrun/abi';
 import { signalTransportFor } from '@/lib/approvals';
 import {
   DEFAULT_PROPOSED_WALLET,
+  chainName,
   defaultChainId,
   deploymentFor,
   explorerTxUrl,
@@ -293,7 +294,7 @@ export function Console() {
             {paused === true && <Tag tone="warning">halted</Tag>}
             {deployment !== undefined && (
               <Tag tone={isLocalChain(deployment.chainId) ? 'warning' : 'nox'}>
-                {isLocalChain(deployment.chainId) ? 'local chain' : `chain ${deployment.chainId}`}
+                {chainName(deployment.chainId)}
               </Tag>
             )}
             {role !== undefined && <Tag tone="approved">{ROLE_LABELS[role]}</Tag>}

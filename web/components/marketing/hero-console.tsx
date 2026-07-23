@@ -2,9 +2,9 @@
 
 import {
   DEFAULT_PROPOSED_WALLET,
+  chainName,
   defaultChainId,
   deploymentFor,
-  isLocalChain,
 } from '@/lib/config';
 import { useGate, useVendorView } from '@/lib/use-firewall';
 import { truncate } from '@/components/primitives';
@@ -44,11 +44,7 @@ export function HeroConsole() {
           </span>
         </div>
         <span className="ledger text-[11px] text-[var(--color-ink-muted)]">
-          {deployment === undefined
-            ? 'no deployment'
-            : isLocalChain(deployment.chainId)
-              ? 'local chain'
-              : `chain ${deployment.chainId}`}
+          {deployment === undefined ? 'no deployment' : chainName(deployment.chainId)}
         </span>
       </div>
 

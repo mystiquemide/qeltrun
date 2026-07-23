@@ -11,7 +11,6 @@ const GITHUB = 'https://github.com/mystiquemide/qeltrun';
  * were missing.
  */
 const LINKS: { label: string; href: string; external?: boolean }[] = [
-  { label: 'Landing', href: '/' },
   { label: 'Proof', href: '/proof' },
   { label: 'Docs', href: '/docs' },
   { label: 'Privacy', href: '/privacy' },
@@ -23,7 +22,7 @@ export function ConsoleFooter() {
   return (
     <footer className="relative z-10 mt-8 border-t border-[var(--color-panel-border)]">
       <div className="mx-auto flex max-w-[1480px] flex-wrap items-center justify-between gap-3 px-5 py-5">
-        <p className="tnum text-[12px] text-[var(--color-ink-muted)]">Qeltrun. MIT licensed.</p>
+        <p className="tnum text-[12px] text-[var(--color-ink-muted)]">Qeltrun</p>
         <nav aria-label="Console footer" className="flex flex-wrap items-center gap-x-5 gap-y-2">
           {LINKS.map((l) =>
             l.external ? (

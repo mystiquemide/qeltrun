@@ -55,8 +55,8 @@ export function Footer() {
             Watch it refuse a payment.
           </h2>
           <p className="mt-5 max-w-[54ch] text-[16px] leading-[1.6] text-[var(--color-hero-ink)]">
-            The console reads the live gate whether or not you connect a wallet. Point it at a
-            destination the reviewers have not cleared and it will tell you no.
+            Connect a wallet and point it at a destination the reviewers have not cleared. The
+            gate reads live from Sepolia and it will tell you no.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
@@ -114,7 +114,6 @@ export function Footer() {
           </div>
 
           <div className="mt-12 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[var(--color-rule)] pt-6">
-            <p className="text-[12.5px] text-[var(--color-ink-600)]">MIT licensed.</p>
             {LEGAL_LINKS.map((l) => (
               <Link
                 key={l.href}
