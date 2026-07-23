@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { Footer } from '@/components/marketing/footer';
+import { Footer, FooterCta } from '@/components/marketing/footer';
 import { Nav } from '@/components/marketing/nav';
 import { Rail, RailInner } from '@/components/marketing/rail';
 
@@ -43,6 +43,7 @@ export default function NotFound() {
           </RailInner>
         </Rail>
       </main>
+      <FooterCta />
       <Footer />
     </>
   );

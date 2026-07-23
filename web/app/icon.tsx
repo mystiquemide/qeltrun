@@ -8,18 +8,16 @@ import { ImageResponse } from 'next/og';
  * viewBox to 32px and thickened a little, because shapes that read fine at 20px in a nav close up
  * into mush at favicon size.
  *
- * The previous icon was three equal vertical bars in the old blue-grey palette. It matched neither
- * the mark nor the console, so the tab showed a different product from the one behind the link.
- *
- * Satori cannot read CSS variables, so the console palette is inlined. Keep in step with the
- * tokens in `globals.css`.
+ * Green is the console's colour, not the brand's - this favicon mirrors the marketing `Mark`
+ * (blue bar, white signals), not the terminal. Satori cannot read CSS variables, so the palette
+ * is inlined. Keep in step with `--color-accent` in `globals.css`.
  */
 export const runtime = 'edge';
 export const size = { width: 32, height: 32 };
 export const contentType = 'image/png';
 
-const INK = '#ddffdc';
-const PHOSPHOR = '#4ade80';
+const INK = '#ffffff';
+const ACCENT = '#015efb';
 
 export default function Icon() {
   return new ImageResponse(
@@ -59,7 +57,7 @@ export default function Icon() {
             width: 9,
             height: 25,
             borderRadius: 2,
-            background: PHOSPHOR,
+            background: ACCENT,
           }}
         />
       </div>

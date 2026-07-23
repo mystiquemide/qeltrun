@@ -1,7 +1,7 @@
 import { Audience } from '@/components/marketing/audience';
 import { Capabilities } from '@/components/marketing/capabilities';
 import { Contrast } from '@/components/marketing/contrast';
-import { Footer } from '@/components/marketing/footer';
+import { Footer, FooterCta } from '@/components/marketing/footer';
 import { Hero } from '@/components/marketing/hero';
 import { Lifecycle } from '@/components/marketing/lifecycle';
 import { Nav } from '@/components/marketing/nav';
@@ -32,6 +32,7 @@ export default function Page() {
         <Lifecycle />
         <Capabilities />
       </main>
+      <FooterCta />
       <Footer />
     </>
   );

@@ -21,21 +21,30 @@ export function Nav({ variant = 'light' }: { variant?: 'light' | 'dark' }) {
   const [open, setOpen] = useState(false);
   const dark = variant === 'dark';
 
+  // The dark variant is genuinely transparent, not a tinted or blurred bar - it is meant to read
+  // as the hero photograph with text floating on it, not as a panel sitting on top of one. A
+  // shadow on the text itself buys legibility over the brighter parts of the photo without
+  // painting anything behind the bar. It is `absolute`, not `sticky`, on purpose: it belongs to
+  // the hero only and should scroll away with it, rather than persisting as unreadable white
+  // text over the light sections that follow.
+  const textShadow = dark ? { textShadow: '0 1px 6px rgba(0,0,0,0.55)' } : undefined;
+
   return (
     <header
-      className={`sticky top-0 z-50 border-b backdrop-blur-md ${
+      className={
         dark
-          ? 'border-white/10 bg-black/30'
-          : 'border-[var(--color-rule)] bg-[var(--color-canvas)]/95 backdrop-blur-[2px]'
-      }`}
+          ? 'absolute inset-x-0 top-0 z-50'
+          : 'sticky top-0 z-50 border-b border-[var(--color-rule)] bg-[var(--color-canvas)]/95 backdrop-blur-[2px]'
+      }
     >
       <div className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-6 md:px-12">
         <Link
           href="/"
           className={`flex items-center gap-2.5 ${dark ? 'text-white' : 'text-[var(--color-ink-900)]'}`}
+          style={textShadow}
           aria-label="Qeltrun home"
         >
-          <Mark accent={dark ? 'var(--color-hero-accent)' : undefined} />
+          <Mark />
           <span className="text-[17px] font-semibold tracking-[-0.02em]">Qeltrun</span>
         </Link>
 
@@ -49,9 +58,10 @@ export function Nav({ variant = 'light' }: { variant?: 'light' | 'dark' }) {
                 : {})}
               className={`text-[15px] transition-colors ${
                 dark
-                  ? 'text-white/75 hover:text-white'
+                  ? 'text-white/90 hover:text-white'
                   : 'text-[var(--color-ink-600)] hover:text-[var(--color-ink-900)]'
               }`}
+              style={textShadow}
             >
               {link.label}
             </a>
@@ -61,11 +71,7 @@ export function Nav({ variant = 'light' }: { variant?: 'light' | 'dark' }) {
         <div className="flex items-center gap-2">
           <Link
             href="/app"
-            className={`rounded-md px-4 py-2 text-[14px] font-semibold transition-colors ${
-              dark
-                ? 'bg-[var(--color-hero-accent)] text-black hover:bg-[var(--color-hero-accent-hover)]'
-                : 'bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-solid)]'
-            }`}
+            className="rounded-md bg-[var(--color-accent)] px-4 py-2 text-[14px] font-semibold text-white transition-colors hover:bg-[var(--color-accent-solid)]"
           >
             Open the console
           </Link>
@@ -77,22 +83,23 @@ export function Nav({ variant = 'light' }: { variant?: 'light' | 'dark' }) {
             aria-controls="mobile-nav"
             aria-label={open ? 'Close menu' : 'Open menu'}
             className={`flex h-9 w-9 items-center justify-center rounded-md border md:hidden ${
-              dark ? 'border-white/20 text-white' : 'border-[var(--color-rule)] text-[var(--color-ink-900)]'
+              dark ? 'border-white/40 text-white' : 'border-[var(--color-rule)] text-[var(--color-ink-900)]'
             }`}
+            style={textShadow}
           >
             <MenuIcon open={open} />
           </button>
         </div>
       </div>
 
-      {/* The mobile panel. Rendered only when open, and closing it on any link tap means a
-          navigation never leaves the menu covering the page it went to. */}
+      {/* The mobile panel needs its own backing regardless of variant - an open dropdown is a
+          transient overlay by nature, not the persistent bar the transparency rule is about. */}
       {open && (
         <nav
           id="mobile-nav"
           aria-label="Primary"
           className={`border-t px-6 py-4 md:hidden ${
-            dark ? 'border-white/10 bg-black/80' : 'border-[var(--color-rule)] bg-[var(--color-canvas)]'
+            dark ? 'border-white/10 bg-[var(--color-hero-bg)]/95' : 'border-[var(--color-rule)] bg-[var(--color-canvas)]'
           }`}
         >
           <ul className="flex flex-col gap-1">

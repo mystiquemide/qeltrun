@@ -23,8 +23,7 @@ export default function Page() {
       <LegalSection heading="What Qeltrun is">
         <p>
           Qeltrun is open-source software. It is a payout firewall that blocks a vendor payment
-          until a sealed approval proves the change. The code is published under the MIT license,
-          which is linked in the footer.
+          until a sealed approval proves the change. The license terms are in the repository.
         </p>
         <p>
           By using this app, you agree to these terms. If you do not agree, do not use it.
@@ -63,7 +62,7 @@ export default function Page() {
         <p>
           The software is provided as is, without warranty of any kind, express or implied. This
           includes any warranty of merchantability, fitness for a particular purpose, and
-          non-infringement. This matches the MIT license the code ships under.
+          non-infringement.
         </p>
         <p>
           To the maximum extent the law allows, the authors are not liable for any claim, damage,

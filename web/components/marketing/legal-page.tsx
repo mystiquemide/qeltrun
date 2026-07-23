@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 
-import { Footer } from './footer';
+import { Footer, FooterCta } from './footer';
 import { Nav } from './nav';
 import { Rail, RailInner } from './rail';
 
@@ -39,6 +39,7 @@ export function LegalPage({
           </RailInner>
         </Rail>
       </main>
+      <FooterCta />
       <Footer />
     </>
   );

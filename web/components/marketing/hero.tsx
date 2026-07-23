@@ -19,17 +19,17 @@ export function Hero() {
     /* Full bleed. The hatched gutters disappear against a light section but turn
        into a white frame around a dark one, which reads as a mistake. The hero is also the one
        section allowed to break the grid; the rail resumes below it. */
-    <section className="relative -mt-16 overflow-hidden bg-[var(--color-hero-bg)]">
-      {/* Reaches 64px above the section's own box, the height of the sticky nav sitting on top
-          of it, so the photograph runs behind the transparent nav instead of stopping at a hard
-          seam under it. */}
+    <section className="relative overflow-hidden bg-[var(--color-hero-bg)]">
+      {/* Nav is `absolute` over this section (see nav.tsx), not in flow, so the section itself
+          already starts at the very top of the page - the photograph needs no extra reach to
+          run behind it. */}
       <div
-        className="absolute inset-x-0 -top-16 bottom-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: 'url(/hero-structure.jpg)' }}
         aria-hidden
       />
       <div
-        className="absolute inset-x-0 -top-16 bottom-0"
+        className="absolute inset-0"
         style={{
           background:
             'linear-gradient(90deg, var(--color-hero-scrim-from) 0%, var(--color-hero-scrim-mid) 46%, var(--color-hero-scrim-to) 100%)',
@@ -52,7 +52,7 @@ export function Hero() {
           <div className="mt-10 flex flex-wrap items-center gap-3">
             <Link
               href="/app"
-              className="rounded-md bg-[var(--color-hero-accent)] px-6 py-3.5 text-[15px] font-semibold text-black transition-colors hover:bg-[var(--color-hero-accent-hover)]"
+              className="rounded-md bg-[var(--color-accent)] px-6 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[var(--color-accent-solid)]"
             >
               Open the console
             </Link>

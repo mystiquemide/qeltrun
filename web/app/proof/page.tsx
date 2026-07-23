@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 import { Confidentiality } from '@/components/marketing/confidentiality';
 import { Deployment } from '@/components/marketing/deployment';
-import { Footer } from '@/components/marketing/footer';
+import { Footer, FooterCta } from '@/components/marketing/footer';
 import { Governance } from '@/components/marketing/governance';
 import { Nav } from '@/components/marketing/nav';
 import { ProofSummary } from '@/components/marketing/proof-summary';
@@ -57,6 +57,7 @@ export default function Page() {
         <Governance />
         <Receipts />
       </main>
+      <FooterCta />
       <Footer />
     </>
   );

@@ -33,50 +33,58 @@ const LEGAL_LINKS = [
   { label: 'Terms', href: '/terms' },
 ];
 
+/// The marketing pitch banner. Belongs on pages a visitor arrives at to be convinced - the
+/// landing page, /proof, the legal pages. Reference documentation is not one of those: a page
+/// somebody is on to look up a function signature does not need a second "open the console" CTA
+/// pushed under it, so `DocsLayout` renders `Footer` alone, without this.
+export function FooterCta() {
+  return (
+    <section className="relative overflow-hidden bg-[var(--color-hero-bg)]">
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: 'url(/band-curve.jpg)' }}
+        aria-hidden
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(90deg, var(--color-hero-scrim-from) 0%, var(--color-hero-scrim-mid) 50%, var(--color-hero-scrim-to) 100%)',
+        }}
+        aria-hidden
+      />
+      <div className="relative mx-auto max-w-[1240px] px-6 py-20 md:px-12 md:py-24">
+        <h2 className="max-w-[20ch] text-[clamp(28px,3.4vw,44px)] font-semibold leading-[1.1] tracking-[-0.02em] text-white">
+          Watch it refuse a payment.
+        </h2>
+        <p className="mt-5 max-w-[54ch] text-[16px] leading-[1.6] text-[var(--color-hero-ink)]">
+          Connect a wallet and point it at a destination the reviewers have not cleared. The
+          gate reads live from Sepolia and it will tell you no.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <Link
+            href="/app"
+            className="rounded-md bg-[var(--color-accent)] px-6 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[var(--color-accent-solid)]"
+          >
+            Open the console
+          </Link>
+          <a
+            href={GITHUB}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-md border border-white/25 px-6 py-3.5 text-[15px] font-medium text-white transition-colors hover:border-white/60"
+          >
+            Read the contracts
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function Footer() {
   return (
     <>
-      <section className="relative overflow-hidden bg-[var(--color-hero-bg)]">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(/band-curve.jpg)' }}
-          aria-hidden
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(90deg, var(--color-hero-scrim-from) 0%, var(--color-hero-scrim-mid) 50%, var(--color-hero-scrim-to) 100%)',
-          }}
-          aria-hidden
-        />
-        <div className="relative mx-auto max-w-[1240px] px-6 py-20 md:px-12 md:py-24">
-          <h2 className="max-w-[20ch] text-[clamp(28px,3.4vw,44px)] font-semibold leading-[1.1] tracking-[-0.02em] text-white">
-            Watch it refuse a payment.
-          </h2>
-          <p className="mt-5 max-w-[54ch] text-[16px] leading-[1.6] text-[var(--color-hero-ink)]">
-            Connect a wallet and point it at a destination the reviewers have not cleared. The
-            gate reads live from Sepolia and it will tell you no.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              href="/app"
-              className="rounded-md bg-[var(--color-accent)] px-6 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-[var(--color-accent-solid)]"
-            >
-              Open the console
-            </Link>
-            <a
-              href={GITHUB}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-md border border-white/25 px-6 py-3.5 text-[15px] font-medium text-white transition-colors hover:border-white/60"
-            >
-              Read the contracts
-            </a>
-          </div>
-        </div>
-      </section>
-
       <Rail band>
         <footer className="px-6 py-14 md:px-12 md:py-16">
           <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr]">
