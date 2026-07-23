@@ -20,9 +20,11 @@ const TITLE = 'Qeltrun: Before funds move, prove the change';
 const DESCRIPTION =
   'A fail-closed payout firewall. A vendor payment destination changes only when an iExec Nox TEE-sealed approval, bound to the approver’s wallet and to the contract, proves it should.';
 
-/// Set NEXT_PUBLIC_SITE_URL once the app is deployed so social cards resolve absolute image
-/// URLs. Falls back to localhost, which is correct for the local demo and harmless otherwise.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+/// The origin social cards resolve their absolute image URLs against. It falls back to the
+/// production domain rather than localhost, because a card shared from a build that forgot to set
+/// NEXT_PUBLIC_SITE_URL should still point at the deployed site, not a machine nobody else can
+/// reach. Set NEXT_PUBLIC_SITE_URL per deployment to override.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://qeltrun.vercel.app';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -59,6 +61,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${plexMono.variable}`}>
       <body>
+        {/* First tab stop on every page. Hidden until focused, then jumps a keyboard or screen
+            reader user past the nav to the page body. Every page renders its content inside a
+            <main id="main-content">. */}
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -265,6 +265,16 @@ export function Console() {
   const injected = connectors[0];
   const canSignal = role !== undefined && status === 'collecting' && busy === null;
 
+  // Why sealing is unavailable, phrased for whoever is looking at the disabled button.
+  const signalReason =
+    !isConnected
+      ? 'Connect one of the three reviewer wallets to seal a position'
+      : role === undefined
+        ? 'This wallet holds none of the three reviewer seats'
+        : status !== 'collecting'
+          ? 'There is no open request collecting positions'
+          : undefined;
+
   return (
     <>
       {/* Terminal chrome. A thin fixed bar carrying identity, network and wallet, the way both
@@ -304,16 +314,18 @@ export function Console() {
                 type="button"
                 onClick={() => injected !== undefined && connect({ connector: injected })}
                 disabled={injected === undefined}
+                title={injected === undefined ? 'No browser wallet detected' : undefined}
+                aria-disabled={injected === undefined}
                 className="rounded-md bg-[var(--color-nox)] px-3 py-1.5 text-[12px] font-medium text-[#06070a] hover:brightness-110 disabled:opacity-40"
               >
-                Connect wallet
+                {injected === undefined ? 'No wallet found' : 'Connect wallet'}
               </button>
             )}
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1480px] px-5 py-5">
+      <main id="main-content" className="mx-auto max-w-[1480px] px-5 py-5">
 
       {wrongChain ? (
         <div className="rounded-md border border-[var(--color-warning)]/40 p-5">
@@ -458,15 +470,35 @@ export function Console() {
                   onClick={openRequest}
                   busy={busy === 'open'}
                   disabled={!isConnected || status !== 'none' || busy !== null || paused === true}
+                  reason={
+                    paused === true
+                      ? 'The firewall is halted'
+                      : !isConnected
+                        ? 'Connect a reviewer wallet to open a request'
+                        : status !== 'none'
+                          ? 'A change request is already open'
+                          : undefined
+                  }
                 >
                   Request the change
                 </Button>
 
                 <div className="grid grid-cols-2 gap-2.5">
-                  <Button onClick={() => submitSignal(true)} busy={busy === 'signal'} disabled={!canSignal} tone="primary">
+                  <Button
+                    onClick={() => submitSignal(true)}
+                    busy={busy === 'signal'}
+                    disabled={!canSignal}
+                    tone="primary"
+                    reason={signalReason}
+                  >
                     Seal approve
                   </Button>
-                  <Button onClick={() => submitSignal(false)} busy={busy === 'signal'} disabled={!canSignal}>
+                  <Button
+                    onClick={() => submitSignal(false)}
+                    busy={busy === 'signal'}
+                    disabled={!canSignal}
+                    reason={signalReason}
+                  >
                     Seal refuse
                   </Button>
                 </div>
@@ -476,6 +508,13 @@ export function Console() {
                   busy={busy === 'settle'}
                   disabled={status !== 'sealed' || busy !== null || paused === true}
                   tone="primary"
+                  reason={
+                    paused === true
+                      ? 'The firewall is halted'
+                      : status !== 'sealed'
+                        ? 'All three positions must be sealed before the verdict can settle'
+                        : undefined
+                  }
                 >
                   Reveal and settle
                 </Button>
@@ -494,8 +533,16 @@ export function Console() {
 
               {!isConnected && (
                 <Note>
-                  Reading live chain state without a wallet. Connect one of the three reviewers to
-                  seal a position.
+                  This console reads live chain state without a wallet, so every panel above is
+                  real. To seal a position, connect one of the three reviewer wallets. To see a
+                  completed run without a wallet, read the proof page:{' '}
+                  <Link
+                    href="/proof"
+                    className="text-[var(--color-nox)] underline underline-offset-2 hover:brightness-110"
+                  >
+                    the eighteen-transaction receipt
+                  </Link>
+                  .
                 </Note>
               )}
 

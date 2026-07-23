@@ -25,6 +25,12 @@ const PRODUCT_LINKS = [
   { label: 'Open the console', href: '/app' },
   { label: 'How it works', href: '/#lifecycle' },
   { label: 'Proof', href: '/proof' },
+  { label: 'Docs', href: '/docs' },
+];
+
+const LEGAL_LINKS = [
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Terms', href: '/terms' },
 ];
 
 export function Footer() {
@@ -107,8 +113,17 @@ export function Footer() {
             </FooterColumn>
           </div>
 
-          <div className="mt-12 border-t border-[var(--color-rule)] pt-6">
-            <p className="text-[12.5px] text-[var(--color-ink-400)]">MIT licensed.</p>
+          <div className="mt-12 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[var(--color-rule)] pt-6">
+            <p className="text-[12.5px] text-[var(--color-ink-600)]">MIT licensed.</p>
+            {LEGAL_LINKS.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="text-[12.5px] text-[var(--color-ink-600)] transition-colors hover:text-[var(--color-ink-900)]"
+              >
+                {l.label}
+              </Link>
+            ))}
 
             {/* Photograph credits stay in the document without taking visual space. The Unsplash
                 licence does not require attribution, so this is courtesy rather than obligation,

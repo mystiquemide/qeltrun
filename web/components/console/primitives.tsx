@@ -23,7 +23,7 @@ export function Region({
   return (
     <section className="tpanel">
       <header className="flex items-center justify-between gap-3 border-b border-[var(--color-divider)] px-4 py-2.5">
-        <h2 className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--color-ink-dim)]">
+        <h2 className="text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--color-ink-dim)]">
           {title}
         </h2>
         {aside}
@@ -61,7 +61,7 @@ export function Stat({
   const color = tone === undefined ? 'var(--color-ink)' : `var(--color-${tone})`;
   return (
     <div className="min-w-0 flex-1 basis-[150px] px-4 py-2.5">
-      <p className="truncate text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--color-ink-muted)]">
+      <p className="truncate text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--color-ink-dim)]">
         {label}
       </p>
       {/* Only a stat carrying state lights up. If everything glowed, nothing would read as live. */}
@@ -115,12 +115,16 @@ export function Button({
   disabled = false,
   busy = false,
   tone = 'default',
+  reason,
 }: {
   children: ReactNode;
   onClick: () => void;
   disabled?: boolean;
   busy?: boolean;
   tone?: 'default' | 'primary';
+  /// Why the button is disabled. Shown as a tooltip and read by assistive tech, so a disabled
+  /// control never looks broken without saying why.
+  reason?: string | undefined;
 }) {
   // GMX and Hyperliquid both fill their execution control solid and leave everything else
   // outlined. The filled button is the one that moves money, and it should be unmistakable.
@@ -132,11 +136,14 @@ export function Button({
     primary:
       'bg-[var(--color-nox)] text-[#06070a] hover:brightness-110 disabled:bg-[var(--color-panel-raised)] disabled:text-[var(--color-ink-muted)] disabled:hover:brightness-100',
   };
+  const isOff = disabled || busy;
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled || busy}
+      disabled={isOff}
+      title={isOff && reason !== undefined ? reason : undefined}
+      aria-disabled={isOff}
       className={`${base} ${tones[tone]}`}
     >
       {busy ? 'Working' : children}

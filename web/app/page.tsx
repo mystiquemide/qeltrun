@@ -22,7 +22,7 @@ export default function Page() {
   return (
     <>
       <Nav />
-      <main>
+      <main id="main-content">
         <Hero />
         <Audience />
         <Contrast />

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { Console } from '@/components/console/console';
+import { ConsoleFooter } from '@/components/console/console-footer';
 
 export const metadata: Metadata = {
   title: 'Console: Qeltrun',
@@ -14,8 +15,11 @@ export const metadata: Metadata = {
 /// stylesheet setting it globally, so the marketing pages stay light.
 export default function Page() {
   return (
-    <div className="surface-console">
-      <Console />
+    <div className="surface-console flex min-h-dvh flex-col">
+      <div className="flex-1">
+        <Console />
+      </div>
+      <ConsoleFooter />
     </div>
   );
 }

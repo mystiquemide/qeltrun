@@ -3,8 +3,10 @@ import Link from 'next/link';
 
 import { Confidentiality } from '@/components/marketing/confidentiality';
 import { Deployment } from '@/components/marketing/deployment';
+import { Footer } from '@/components/marketing/footer';
 import { Governance } from '@/components/marketing/governance';
 import { Nav } from '@/components/marketing/nav';
+import { ProofSummary } from '@/components/marketing/proof-summary';
 import { Receipts } from '@/components/marketing/receipts';
 import { Rail } from '@/components/marketing/rail';
 
@@ -29,7 +31,7 @@ export default function Page() {
   return (
     <>
       <Nav />
-      <main>
+      <main id="main-content">
         <Rail>
           <div className="px-6 pt-16 pb-4 md:px-12 md:pt-20">
             <Link
@@ -49,11 +51,13 @@ export default function Page() {
           </div>
         </Rail>
 
+        <ProofSummary />
         <Deployment />
         <Confidentiality />
         <Governance />
         <Receipts />
       </main>
+      <Footer />
     </>
   );
 }

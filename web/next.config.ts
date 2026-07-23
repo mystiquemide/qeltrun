@@ -7,10 +7,51 @@ const here = dirname(fileURLToPath(import.meta.url));
 
 const config: NextConfig = {
   reactStrictMode: true,
+  // Do not advertise the framework in a response header. It gives a version fingerprint and buys
+  // nothing.
+  poweredByHeader: false,
   // The gate logic and request-id derivation live in `../src/domain` and are shared with the
   // contract tests. Compiling them here rather than copying them is what keeps the UI from
   // drifting away from the thing it is a client for.
   transpilePackages: [],
+  // Security headers on every response.
+  //
+  // The app reads chain state and talks to a wallet extension. It loads no third-party script,
+  // frame or stylesheet, so the policy stays tight on sources. `'unsafe-inline'` is on both
+  // script-src and style-src because Next.js emits inline bootstrap scripts for its statically
+  // prerendered pages, and Tailwind and next/font emit inline style. A nonce would remove the
+  // script exception, but nonces force every page to render dynamically and give up the static
+  // optimization this mostly-static site depends on. The app renders no user-supplied HTML, so
+  // the residual inline-script XSS surface is minimal. `'wasm-unsafe-eval'` is for wallet SDKs
+  // that compile WASM. `connect-src` allows any https and the local node, because the RPC
+  // endpoint is set per deployment and is not known at build time.
+  async headers() {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data:",
+      "font-src 'self'",
+      "connect-src 'self' https: http://127.0.0.1:8545 http://localhost:8545 ws: wss:",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+    ].join('; ');
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+          { key: 'Content-Security-Policy', value: csp },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+        ],
+      },
+    ];
+  },
   webpack(cfg) {
     // `../src` is written as NodeNext ESM, so its relative imports carry `.js` extensions that
     // point at `.ts` files on disk.
