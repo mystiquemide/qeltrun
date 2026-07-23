@@ -1,11 +1,10 @@
 'use client';
 
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   useAccount,
-  useConnect,
-  useDisconnect,
   usePublicClient,
   useSwitchChain,
   useWalletClient,
@@ -38,6 +37,7 @@ import {
   ROLE_LABELS,
 } from '@/lib/use-firewall';
 import { ActionLog, type LogEntry, type LogTone } from '@/components/action-log';
+import { DemoKeys } from './demo-keys';
 import { Button, Field, Mono, Note, Region, Stat, StatStrip, Tag, truncate } from './primitives';
 import { Reviewers } from './reviewers';
 
@@ -73,8 +73,6 @@ const GATE_COPY: Record<string, { headline: string; detail: string }> = {
 
 export function Console() {
   const { address, chainId: walletChainId, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
-  const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
   const { data: walletClient } = useWalletClient();
   const { writeContractAsync } = useWriteContract();
@@ -262,7 +260,6 @@ export function Console() {
   const accent = allowed ? 'var(--color-approved)' : 'var(--color-blocked)';
   const gatePending = gate.isLoading || deployment === undefined;
 
-  const injected = connectors[0];
   const canSignal = role !== undefined && status === 'collecting' && busy === null;
 
   // Why sealing is unavailable, phrased for whoever is looking at the disabled button.
@@ -301,26 +298,13 @@ export function Console() {
               </Tag>
             )}
             {role !== undefined && <Tag tone="approved">{ROLE_LABELS[role]}</Tag>}
-            {isConnected && address !== undefined ? (
-              <button
-                type="button"
-                onClick={() => disconnect()}
-                className="tnum rounded-md border border-[var(--color-panel-border)] bg-[var(--color-panel-raised)] px-2.5 py-1.5 text-[12px] text-[var(--color-ink-dim)] hover:border-[var(--color-ink-muted)]"
-              >
-                {truncate(address, 6, 4)}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => injected !== undefined && connect({ connector: injected })}
-                disabled={injected === undefined}
-                title={injected === undefined ? 'No browser wallet detected' : undefined}
-                aria-disabled={injected === undefined}
-                className="rounded-md bg-[var(--color-nox)] px-3 py-1.5 text-[12px] font-medium text-[#06070a] hover:brightness-110 disabled:opacity-40"
-              >
-                {injected === undefined ? 'No wallet found' : 'Connect wallet'}
-              </button>
-            )}
+            {/* RainbowKit owns connect, account display, and network switching. `chainStatus`
+                is hidden because the console already shows the chain as a tag to its left. */}
+            <ConnectButton
+              showBalance={false}
+              accountStatus="address"
+              chainStatus="none"
+            />
           </div>
         </div>
       </header>
@@ -422,6 +406,10 @@ export function Console() {
                 </Note>
               )}
             </Region>
+
+            {/* The three burner keys, on the live chain only. On the local chain the setup script
+                already prints the Hardhat reviewer keys to the terminal. */}
+            {!isLocalChain(deployment.chainId) && <DemoKeys />}
           </div>
 
           {/* Centre: the verdict and the actions */}

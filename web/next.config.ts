@@ -69,6 +69,12 @@ const config: NextConfig = {
     };
     // Optional node built-ins reached for by wallet connectors, never executed in the browser.
     cfg.resolve.fallback = { ...cfg.resolve.fallback, fs: false, net: false, tls: false };
+    // The wagmi connector barrel pulls in the Coinbase/Base account package, whose optional
+    // payment path imports `@x402/*` submodules that are not installed. The curated wallet list
+    // never uses the Coinbase connector, so stub the whole package to an empty module. This drops
+    // the broken `@x402` subtree from the graph. Reintroduce the package if a Coinbase wallet is
+    // ever added, and install `@x402/*` with it.
+    cfg.resolve.alias = { ...cfg.resolve.alias, '@base-org/account': false };
     return cfg;
   },
 };
