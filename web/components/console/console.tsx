@@ -262,15 +262,14 @@ export function Console() {
 
   const canSignal = role !== undefined && status === 'collecting' && busy === null;
 
-  // Why sealing is unavailable, phrased for whoever is looking at the disabled button.
+  // Why sealing is unavailable, phrased for whoever is looking at the disabled button. Reachable
+  // only once connected - the console renders nothing else until then, see ConnectGate below.
   const signalReason =
-    !isConnected
-      ? 'Connect one of the three reviewer wallets to seal a position'
-      : role === undefined
-        ? 'This wallet holds none of the three reviewer seats'
-        : status !== 'collecting'
-          ? 'There is no open request collecting positions'
-          : undefined;
+    role === undefined
+      ? 'This wallet holds none of the three reviewer seats'
+      : status !== 'collecting'
+        ? 'There is no open request collecting positions'
+        : undefined;
 
   return (
     <>
@@ -311,7 +310,9 @@ export function Console() {
 
       <main id="main-content" className="mx-auto max-w-[1480px] px-5 py-5">
 
-      {wrongChain ? (
+      {!isConnected ? (
+        <ConnectGate />
+      ) : wrongChain ? (
         <div className="rounded-md border border-[var(--color-warning)]/40 p-5">
           <p className="text-[14px] text-[var(--color-warning)]">
             No Qeltrun deployment on chain {activeChainId}.
@@ -399,7 +400,7 @@ export function Console() {
                 connected={address}
                 connectedRole={role}
               />
-              {isConnected && role === undefined && (
+              {role === undefined && (
                 <Note>
                   This wallet holds none of the three seats, so it cannot seal a position. It can
                   still open a request and settle one, because settlement is permissionless.
@@ -457,15 +458,13 @@ export function Console() {
                 <Button
                   onClick={openRequest}
                   busy={busy === 'open'}
-                  disabled={!isConnected || status !== 'none' || busy !== null || paused === true}
+                  disabled={status !== 'none' || busy !== null || paused === true}
                   reason={
                     paused === true
                       ? 'The firewall is halted'
-                      : !isConnected
-                        ? 'Connect a reviewer wallet to open a request'
-                        : status !== 'none'
-                          ? 'A change request is already open'
-                          : undefined
+                      : status !== 'none'
+                        ? 'A change request is already open'
+                        : undefined
                   }
                 >
                   Request the change
@@ -519,22 +518,7 @@ export function Console() {
                 </Note>
               )}
 
-              {!isConnected && (
-                <Note>
-                  This console reads live chain state without a wallet, so every panel above is
-                  real. To seal a position, connect one of the three reviewer wallets. To see a
-                  completed run without a wallet, read the proof page:{' '}
-                  <Link
-                    href="/proof"
-                    className="text-[var(--color-nox)] underline underline-offset-2 hover:brightness-110"
-                  >
-                    the eighteen-transaction receipt
-                  </Link>
-                  .
-                </Note>
-              )}
-
-              {isConnected && status === 'collecting' && role === undefined && (
+              {status === 'collecting' && role === undefined && (
                 <Note>
                   Only the three reviewers above can seal a position on this request. Any other
                   wallet is refused on chain.
@@ -598,6 +582,46 @@ export function Console() {
       )}
       </main>
     </>
+  );
+}
+
+/**
+ * The wallet gate.
+ *
+ * Every real action on this console, opening a request, sealing a reviewer position, revealing
+ * and settling a verdict, is a signed transaction. There is nothing left to show a disconnected
+ * visitor except numbers they cannot act on, so the console renders nothing else until a wallet
+ * is connected. `/proof` stays the no-wallet path: a completed run, already on chain, for a
+ * visitor who wants the evidence without touching a wallet at all.
+ */
+function ConnectGate() {
+  return (
+    <div className="tpanel mx-auto mt-10 max-w-[440px] p-7 text-center">
+      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--color-ink-dim)]">
+        Payout gate
+      </p>
+      <h1 className="mt-3 text-[22px] font-semibold leading-tight text-[var(--color-ink)]">
+        Connect a wallet to open the console
+      </h1>
+      <p className="mt-3 text-[13px] leading-relaxed text-[var(--color-ink-dim)]">
+        Every action here is a wallet-signed transaction on Ethereum Sepolia: opening a change
+        request, sealing a reviewer position, revealing and settling a verdict. Nothing renders
+        until a wallet is connected.
+      </p>
+      <div className="mt-6 flex justify-center">
+        <ConnectButton showBalance={false} accountStatus="address" chainStatus="none" />
+      </div>
+      <p className="mt-6 text-[12px] text-[var(--color-ink-muted)]">
+        No wallet? Read a completed run instead:{' '}
+        <Link
+          href="/proof"
+          className="text-[var(--color-nox)] underline underline-offset-2 hover:brightness-110"
+        >
+          the eighteen-transaction receipt
+        </Link>
+        .
+      </p>
+    </div>
   );
 }
 
