@@ -49,24 +49,6 @@ const expectations: Expectation[] = [
     pattern: /\|\s*`test\/\*\.test\.ts`\s*\|\s*(\d+)\s*\|/,
     expected: vitestTotal,
   },
-  {
-    doc: 'docs/TASKS.md',
-    label: 'vitest total',
-    pattern: /(\d+) vitest and \d+ Solidity tests are green/,
-    expected: vitestTotal,
-  },
-  {
-    doc: 'docs/TASKS.md',
-    label: 'Solidity total',
-    pattern: /\d+ vitest and (\d+) Solidity tests are green/,
-    expected: solidityTotal,
-  },
-  {
-    doc: 'docs/AUDIT.md',
-    label: 'attack matrix',
-    pattern: /QeltrunPayoutFirewall\.attack\.t\.sol`, (\d+) tests/,
-    expected: solidityCounts.get('test/solidity/QeltrunPayoutFirewall.attack.t.sol') ?? 0,
-  },
 ];
 
 const sources = new Map<string, string>();

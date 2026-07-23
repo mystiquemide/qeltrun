@@ -68,8 +68,7 @@ pnpm run demo
 ```
 
 `pnpm run demo` runs the original end-to-end Nox lifecycle on an in-process Hardhat chain and
-exits non-zero if any checkpoint fails. The v2 live evidence is indexed in
-[`docs/V2_RELEASE_GATE.md`](docs/V2_RELEASE_GATE.md).
+exits non-zero if any checkpoint fails.
 
 ## 12 ways Qeltrun was verified
 
@@ -108,7 +107,6 @@ Network: Ethereum Sepolia, chain ID `11155111`.
 Safe ownership acceptance and module enablement happened in one batched transaction:
 [`0xb2f06a...c57f`](https://sepolia.etherscan.io/tx/0xb2f06ac5c002d3295b9aa2f0cebb2132c0f9fa5f2e7cbb9681ce621f86f5c57f).
 
-Deployment source revision: [`56f53d9`](https://github.com/Mystiquemide/qeltrun/commit/56f53d9).
 Generated ABI: [`src/contracts/generated/firewall-v2-abi.ts`](src/contracts/generated/firewall-v2-abi.ts).
 
 ## Real usage
@@ -123,8 +121,10 @@ The Sepolia Safe has executed actual testnet transactions through the module:
 | ERC-20 payout | [`0x4f2ce5...d443`](https://sepolia.etherscan.io/tx/0x4f2ce50193daa88b18403b7a6d209933c8471c40fc8764d26217434ed073d443) | `125 QDT` to policy wallet |
 | Two-party approver rotation | [`0xf19a7f...2889`](https://sepolia.etherscan.io/tx/0xf19a7f085cac7b0761ca198be27a104a078627dd312e137a6b3859b8216f2889) | Approver epoch advanced to 2 |
 
-The current screenshots show the original v1 dashboard against Sepolia. They are real chain
-reads, but the v2 three-reviewer frontend is the next integration step.
+The console is gated behind wallet connect: it renders nothing but a connect prompt until a
+wallet is attached, so every number and every action on screen traces back to a signature. New
+screenshots of the v2 console are pending; the pair below still shows the earlier v1 dashboard
+against Sepolia and predates the wallet gate.
 
 | Blocked | Allowed |
 |---|---|
@@ -151,8 +151,8 @@ reads, but the v2 three-reviewer frontend is the next integration step.
   breaks confidentiality and proof authority.
 - **Safe governance exists.** The Safe can register vendors, change operational reviewers,
   pause, and schedule delayed approver recovery. It cannot directly replace a payout wallet.
-- **The v2 frontend is pending.** The current dashboard targets v1. The complete v2 backend and
-  live proof path are ready for that integration now.
+- **Screenshots lag the shipped frontend.** The v2 console (wallet-gated, RainbowKit, Sepolia
+  default) is live in the repo; the README screenshots above still show the earlier v1 dashboard.
 - **One live recovery observation is still maturing.** Early failure and veto passed on Sepolia.
   Successful post-delay execution passes locally and the matching public-chain transaction can
   execute after `2026-07-28 20:02:12 UTC`.
@@ -174,7 +174,7 @@ bytes and on-chain verification remain protocol-compatible.
 
 Current status:
 
-- 29 Vitest tests pass.
+- 36 Vitest tests pass.
 - 64 Solidity tests pass.
 - Deep profile passes with 2,048 fuzz runs and 1,024 invariant runs at depth 64.
 - v1 and v2 Slither finding sets match reviewed baselines.
@@ -191,11 +191,11 @@ Current status:
 | `test/solidity/QeltrunPayoutFirewallV2.t.sol` | 11 |
 | `test/solidity/QeltrunSafePayoutModule.t.sol` | 7 |
 | `test/solidity/RequestIdParity.t.sol` | 2 |
-| `test/*.test.ts` | 29 |
+| `test/*.test.ts` | 36 |
 
-Read [`docs/AUDIT_V2.md`](docs/AUDIT_V2.md),
-[`docs/V2_RELEASE_GATE.md`](docs/V2_RELEASE_GATE.md), and [`feedback.md`](feedback.md) for the
-security model, transaction matrix, and iExec developer feedback.
+Read the [contracts reference](https://qeltrun.vercel.app/docs/contracts) and
+[confidential model](https://qeltrun.vercel.app/docs/confidential-model) in the docs portal for
+the security model and transaction matrix.
 
 ## Run locally
 

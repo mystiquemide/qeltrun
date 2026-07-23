@@ -18,8 +18,8 @@ import type { Hex } from '../domain/types.js';
  */
 
 /// The gateway reports both waits as prose, so this matches on message text and is therefore
-/// fragile: a reworded message turns a recoverable wait into a hard failure. Written up for
-/// iExec in `feedback.md` §5. Keeping it to one list at least makes it one thing to fix.
+/// fragile: a reworded message turns a recoverable wait into a hard failure. Keeping it to one
+/// list at least makes it one thing to fix.
 const RETRYABLE_MESSAGES = [
   /// ACL not yet indexed from the sealing transaction.
   'not publicly decryptable',

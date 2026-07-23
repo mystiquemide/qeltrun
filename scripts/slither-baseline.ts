@@ -5,7 +5,7 @@
  * reading the output but useless in CI: a job that always fails tells you nothing. This wrapper
  * makes the *set* of findings the thing under test. It exits 0 only when Slither reports exactly
  * the findings recorded in `slither-baseline.json`, so a genuinely new finding fails the build
- * while the three accepted ones (analysed in docs/AUDIT.md) stay visible rather than suppressed.
+ * while the three accepted ones (recorded in this baseline) stay visible rather than suppressed.
  *
  * Removing a finding also fails, on purpose — it means the baseline is now claiming something
  * about the contract that is no longer true and should be pruned along with the code change.
@@ -63,7 +63,7 @@ const findings = runSlither();
 if (process.argv.includes('--update')) {
   writeFileSync(BASELINE, `${JSON.stringify(findings, null, 2)}\n`, 'utf8');
   console.log(`Recorded ${findings.length} accepted finding(s) in slither-baseline.json.`);
-  console.log('Every entry must be justified in docs/AUDIT.md before this is committed.');
+  console.log('Every entry must be a reviewed, accepted finding before this is committed.');
   process.exit(0);
 }
 
@@ -97,8 +97,8 @@ for (const finding of removed) {
 console.error(
   added.length > 0
     ? '\nA finding appeared that has not been reviewed. Analyse it, then either fix it or ' +
-        'record it with `pnpm run audit:slither:update` and justify it in docs/AUDIT.md.'
+        'record it as accepted with `pnpm run audit:slither:update`.'
     : '\nA baseline finding no longer reproduces. Prune it with ' +
-        '`pnpm run audit:slither:update` and update docs/AUDIT.md.',
+        '`pnpm run audit:slither:update`.',
 );
 process.exit(1);
