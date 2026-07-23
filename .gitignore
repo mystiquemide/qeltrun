@@ -12,3 +12,19 @@ artifacts
 ignition/deployments
 *.tsbuildinfo
 .DS_Store
+
+# Internal working docs: agent memory, hackathon strategy notes, and design-tool logs.
+# History-scrubbed from this repo before making it public - see backup/pre-history-rewrite-*.
+memory.md
+feedback.md
+docs/TASKS.md
+docs/WIN_PLAN.md
+docs/DEMO_SCRIPT.md
+docs/PRD.md
+docs/ARCHITECTURE.md
+docs/AUDIT.md
+docs/AUDIT_V2.md
+docs/DESIGN.md
+docs/NOX_API_NOTES.md
+docs/V2_RELEASE_GATE.md
+.hallmark
