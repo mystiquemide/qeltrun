@@ -41,9 +41,10 @@ FIREWALL_ADDRESS    # the firewall to exercise in verify:live`}</Code>
       </P>
       <Code>{`NEXT_PUBLIC_SEPOLIA_RPC_URL       # RPC the browser reads Sepolia through
 NEXT_PUBLIC_SEPOLIA_FIREWALL_V2   # deployed v2 firewall address
-NEXT_PUBLIC_SEPOLIA_VENDOR_ID     # demo vendor id
-NEXT_PUBLIC_SEPOLIA_VENDOR_LABEL  # demo vendor label
+NEXT_PUBLIC_SEPOLIA_VENDOR_ID     # the vendor id the console reads
+NEXT_PUBLIC_SEPOLIA_VENDOR_LABEL  # its label, before hashing to the id above
 NEXT_PUBLIC_SEPOLIA_SAFE_MODULE   # optional Safe payout module address
+NEXT_PUBLIC_SEPOLIA_TREASURY_SAFE # the Safe that owns the firewall, gates the admin panel
 NEXT_PUBLIC_SEPOLIA_PROPOSED_WALLET  # the destination the gate tests
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID # WalletConnect project id, from cloud.reown.com
 NEXT_PUBLIC_SITE_URL              # origin for social card image URLs`}</Code>

@@ -37,7 +37,9 @@ import {
   useVerdictHandle,
   ROLE_LABELS,
 } from '@/lib/use-firewall';
+import { useIsSafeOwner } from '@/lib/safe-admin';
 import { ActionLog, type LogEntry, type LogTone } from '@/components/action-log';
+import { AdminPanel } from './admin-panel';
 import { DemoKeys } from './demo-keys';
 import { Button, Field, Mono, Note, Region, Stat, StatStrip, Tag, truncate } from './primitives';
 import { Reviewers } from './reviewers';
@@ -107,6 +109,7 @@ export function Console() {
   const gate = useGate(deployment, PROPOSED);
   const noxCompute = useNoxComputeAddress(deployment);
   const { data: paused } = usePaused(deployment);
+  const { isOwner: isSafeOwner } = useIsSafeOwner(deployment?.treasurySafe, address);
 
   // Derived off `msg.sender`, a request id only ever resolves for the wallet that opened it - the
   // other two reviewers would each hash a different id and see no request at all. Reading
@@ -136,9 +139,7 @@ export function Console() {
 
   useEffect(() => {
     if (deployment === undefined) return;
-    append(
-      `Reading chain ${deployment.chainId}, firewall ${truncate(deployment.firewall)}`,
-    );
+    append(`Connected to ${chainName(deployment.chainId)}. Firewall ${truncate(deployment.firewall)}.`);
     // Deployment identity is stable for a session; this is a one-shot banner.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deployment?.firewall]);
@@ -412,6 +413,13 @@ export function Console() {
             {/* The three burner keys, on the live chain only. On the local chain the setup script
                 already prints the Hardhat reviewer keys to the terminal. */}
             {!isLocalChain(deployment.chainId) && <DemoKeys />}
+
+            {/* Only ever renders for the Treasury Safe's own wallet - everyone else's `getOwners`
+                check comes back false, so the form (and the terminal-only registration path it
+                replaces) simply does not exist for them. */}
+            {isSafeOwner && (
+              <AdminPanel deployment={deployment} walletClient={walletClient} onRegistered={() => void gate.refetch()} />
+            )}
           </div>
 
           {/* Centre: the verdict and the actions */}
@@ -543,7 +551,7 @@ export function Console() {
                 />
               </Field>
               <Field label="Positions sealed">
-                <Mono value={rid === undefined ? 'needs a wallet' : `${signalCount} of 3`} />
+                <Mono value={rid === undefined ? 'no open request' : `${signalCount} of 3`} />
               </Field>
               <Field label="Aggregate">
                 <span className="tnum text-[13px] text-[var(--color-ink-dim)]">
@@ -633,12 +641,14 @@ function isSet(handle: Hex | undefined): boolean {
 /**
  * Handles read as `not yet` until they exist, then as their truncated value.
  *
- * Without a request id there is nothing to look up, so this says so rather than `reading`.
- * Reporting a permanent unknown as a temporary one is the same mistake the v1 console avoided
- * for request ids, and it says the console is busy when it is actually just uninformed.
+ * Without a request id there is nothing to look up, so this says so rather than `reading`. This
+ * reads from chain state alone (`useOpenRequestId`), not from wallet connection, so the reason is
+ * "no open request", never "needs a wallet" - a wallet was never the blocker here. Reporting a
+ * permanent unknown as a temporary one is the same mistake the v1 console avoided for request
+ * ids, and it says the console is busy when it is actually just uninformed.
  */
 function handleState(requestId: Hex | undefined, handle: Hex | undefined, when: string): string {
-  if (requestId === undefined) return 'needs a wallet';
+  if (requestId === undefined) return 'no open request';
   if (handle === undefined) return 'reading';
   if (handle === ZERO_HANDLE) return 'not yet';
   return `${truncate(handle, 8, 6)} ${when}`;

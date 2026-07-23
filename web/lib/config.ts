@@ -31,6 +31,9 @@ export type Deployment = {
   gateway?: Address;
   /// Optional Safe module, present where the treasury path is wired.
   safeModule?: Address;
+  /// The Safe that owns the firewall. `registerVendor` is owner-only, so this is what the
+  /// console checks the connected wallet against to decide whether to show the admin panel.
+  treasurySafe?: Address;
   /// No `payoutWallet` here on purpose. The console reads the current payout wallet from the
   /// chain, so a configured copy could only ever go stale and contradict it.
   ///
@@ -47,6 +50,7 @@ const sepoliaFirewall = process.env.NEXT_PUBLIC_SEPOLIA_FIREWALL_V2 as Address |
 const sepoliaVendorLabel = process.env.NEXT_PUBLIC_SEPOLIA_VENDOR_LABEL ?? 'vendor:northwind-logistics';
 const sepoliaVendorId = process.env.NEXT_PUBLIC_SEPOLIA_VENDOR_ID as Hex | undefined;
 const sepoliaSafeModule = process.env.NEXT_PUBLIC_SEPOLIA_SAFE_MODULE as Address | undefined;
+const sepoliaTreasurySafe = process.env.NEXT_PUBLIC_SEPOLIA_TREASURY_SAFE as Address | undefined;
 const sepoliaProposedWallet = process.env.NEXT_PUBLIC_SEPOLIA_PROPOSED_WALLET as Address | undefined;
 
 /// NoxCompute on Ethereum Sepolia, per `@iexec-nox/handle`'s network config.
@@ -62,6 +66,7 @@ export const deployments: Record<number, Deployment> = {
           noxCompute: SEPOLIA_NOX_COMPUTE,
           ...(sepoliaProposedWallet !== undefined ? { proposedWallet: sepoliaProposedWallet } : {}),
           ...(sepoliaSafeModule !== undefined ? { safeModule: sepoliaSafeModule } : {}),
+          ...(sepoliaTreasurySafe !== undefined ? { treasurySafe: sepoliaTreasurySafe } : {}),
           demoVendor: {
             label: sepoliaVendorLabel,
             vendorId: sepoliaVendorId,
