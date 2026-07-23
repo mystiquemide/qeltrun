@@ -19,14 +19,17 @@ export function Hero() {
     /* Full bleed. The hatched gutters disappear against a light section but turn
        into a white frame around a dark one, which reads as a mistake. The hero is also the one
        section allowed to break the grid; the rail resumes below it. */
-    <section className="relative overflow-hidden bg-[var(--color-hero-bg)]">
+    <section className="relative -mt-16 overflow-hidden bg-[var(--color-hero-bg)]">
+      {/* Reaches 64px above the section's own box, the height of the sticky nav sitting on top
+          of it, so the photograph runs behind the transparent nav instead of stopping at a hard
+          seam under it. */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-x-0 -top-16 bottom-0 bg-cover bg-center"
         style={{ backgroundImage: 'url(/hero-structure.jpg)' }}
         aria-hidden
       />
       <div
-        className="absolute inset-0"
+        className="absolute inset-x-0 -top-16 bottom-0"
         style={{
           background:
             'linear-gradient(90deg, var(--color-hero-scrim-from) 0%, var(--color-hero-scrim-mid) 46%, var(--color-hero-scrim-to) 100%)',

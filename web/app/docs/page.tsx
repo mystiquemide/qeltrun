@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
-import { DOCS_TREE } from '@/components/docs/docs-nav';
 import { Callout, DocHeader, P } from '@/components/docs/prose';
 
 export const metadata: Metadata = {
@@ -32,30 +31,7 @@ export default function Page() {
         audited. Read the <Link href="/terms" className="text-[var(--color-accent)] underline underline-offset-2">terms</Link> before you reuse this code.
       </Callout>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
-        {DOCS_TREE.map((group) => (
-          <div key={group.title} className="rounded-md border border-[var(--color-rule)] p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--color-accent)]">
-              {group.kind}
-            </p>
-            <p className="mt-1 text-[15px] font-semibold text-[var(--color-ink-900)]">
-              {group.title}
-            </p>
-            <ul className="mt-3 space-y-1.5">
-              {group.links.map((l) => (
-                <li key={l.href}>
-                  <Link
-                    href={l.href}
-                    className="text-[14px] text-[var(--color-ink-600)] transition-colors hover:text-[var(--color-ink-900)]"
-                  >
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+      <P>Start with the sidebar: Quickstart to run it, Guides to deploy or drive the reviewer flow, Reference for the exact contract and CLI surfaces, Concepts for how the confidential approval works.</P>
     </article>
   );
 }

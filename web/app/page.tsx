@@ -21,7 +21,7 @@ import { Statement } from '@/components/marketing/statement';
 export default function Page() {
   return (
     <>
-      <Nav />
+      <Nav variant="dark" />
       <main id="main-content">
         <Hero />
         <Audience />

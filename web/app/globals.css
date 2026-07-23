@@ -32,9 +32,11 @@
      accent darkened for white. Same colour, picked for the background it actually sits on. */
   --color-hero-accent: #4ade80;
   --color-hero-accent-hover: #6ee79b;
-  --color-hero-scrim-from: rgba(0, 0, 0, 0.96);
-  --color-hero-scrim-mid: rgba(0, 0, 0, 0.88);
-  --color-hero-scrim-to: rgba(0, 0, 0, 0.55);
+  /* Lighter than the surface used to be. The photograph is the point; the scrim's only job is
+     keeping the headline readable on the left, not blacking out the whole frame. */
+  --color-hero-scrim-from: rgba(0, 0, 0, 0.6);
+  --color-hero-scrim-mid: rgba(0, 0, 0, 0.34);
+  --color-hero-scrim-to: rgba(0, 0, 0, 0.05);
 
   /* Console surface: a phosphor enclave readout.
 
