@@ -45,7 +45,13 @@ NEXT_PUBLIC_SEPOLIA_VENDOR_ID     # demo vendor id
 NEXT_PUBLIC_SEPOLIA_VENDOR_LABEL  # demo vendor label
 NEXT_PUBLIC_SEPOLIA_SAFE_MODULE   # optional Safe payout module address
 NEXT_PUBLIC_SEPOLIA_PROPOSED_WALLET  # the destination the gate tests
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID # WalletConnect project id, from cloud.reown.com
 NEXT_PUBLIC_SITE_URL              # origin for social card image URLs`}</Code>
+
+      <Callout tone="note" title="WalletConnect is optional">
+        <C>NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID</C> only gates the WalletConnect connector, for
+        mobile wallets. Injected wallets (MetaMask, Rabby, any EIP-6963 wallet) work without it.
+      </Callout>
 
       <Callout tone="note" title="The RPC key is public by design">
         The browser needs an RPC endpoint, so <C>NEXT_PUBLIC_SEPOLIA_RPC_URL</C> ships in the
