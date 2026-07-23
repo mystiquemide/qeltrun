@@ -13,6 +13,7 @@ import {
 
 import { FIREWALL_V2_ABI } from '@qeltrun/abi';
 import { signalTransportFor } from '@/lib/approvals';
+import { friendlyError } from '@/lib/errors';
 import {
   DEFAULT_PROPOSED_WALLET,
   chainName,
@@ -150,10 +151,11 @@ export function Console() {
       try {
         await task();
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        // Wallet rejections are a normal user action, not a failure worth shouting about.
-        const rejected = /User rejected|user denied|4001/i.test(message);
-        append(rejected ? 'Cancelled in wallet.' : message.split('\n')[0] ?? 'Action failed', rejected ? 'info' : 'error');
+        // Wallet rejections are a normal user action, not a failure worth shouting about. Every
+        // other error keeps its real text - this audience wants the revert reason - plus one
+        // concrete next step, so it is never a dead end.
+        const { text, rejected } = friendlyError(error);
+        append(text, rejected ? 'info' : 'error');
       } finally {
         setBusy(null);
         setWaiting(null);

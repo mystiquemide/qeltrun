@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { WalletClient } from 'viem';
 
 import type { Address, Deployment } from '@/lib/config';
+import { friendlyError } from '@/lib/errors';
 import { registerVendorViaSafe } from '@/lib/safe-admin';
 import { Button, Field, Note, Region } from './primitives';
 
@@ -31,7 +32,7 @@ export function AdminPanel({
   const [treasuryReviewer, setTreasuryReviewer] = useState('');
   const [riskReviewer, setRiskReviewer] = useState('');
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+  const [result, setResult] = useState<{ tone: 'ok' | 'error' | 'info'; text: string } | null>(null);
 
   const safeAddress = deployment.treasurySafe;
   const canSubmit =
@@ -67,8 +68,8 @@ export function AdminPanel({
       setRiskReviewer('');
       onRegistered();
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      setResult({ tone: 'error', text: message.split('\n')[0] ?? 'Registration failed' });
+      const { text, rejected } = friendlyError(error);
+      setResult({ tone: rejected ? 'info' : 'error', text });
     } finally {
       setBusy(false);
     }
@@ -111,7 +112,16 @@ export function AdminPanel({
 
       {result !== null && (
         <Note>
-          <span style={{ color: result.tone === 'ok' ? 'var(--color-approved)' : 'var(--color-blocked)' }}>
+          <span
+            style={{
+              color:
+                result.tone === 'ok'
+                  ? 'var(--color-approved)'
+                  : result.tone === 'error'
+                    ? 'var(--color-blocked)'
+                    : 'var(--color-ink-muted)',
+            }}
+          >
             {result.text}
           </span>
         </Note>
