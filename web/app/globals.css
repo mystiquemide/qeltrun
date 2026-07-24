@@ -23,11 +23,12 @@
   --color-hero-bg: #141c2e;
   --color-hero-ink: #c4cee0;
   --color-hero-dim: #8fa2c4;
-  /* Lighter than the surface used to be. The photograph is the point; the scrim's only job is
-     keeping the headline readable on the left, not blacking out the whole frame. */
-  --color-hero-scrim-from: rgba(11, 16, 28, 0.6);
-  --color-hero-scrim-mid: rgba(11, 16, 28, 0.34);
-  --color-hero-scrim-to: rgba(11, 16, 28, 0.05);
+  /* Darkened so the muted hero-ink text reads cleanly over the photograph. The scrim is still
+     weighted left (where the text sits) and fades to let the structure show on the right, but the
+     left is now dark enough that legibility no longer depends on the text-shadow alone. */
+  --color-hero-scrim-from: rgba(11, 16, 28, 0.85);
+  --color-hero-scrim-mid: rgba(11, 16, 28, 0.6);
+  --color-hero-scrim-to: rgba(11, 16, 28, 0.2);
 
   /* Console surface: a phosphor enclave readout.
 
