@@ -4,6 +4,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MotionConfig } from 'motion/react';
 import { useState } from 'react';
 import { WagmiProvider } from 'wagmi';
 
@@ -28,12 +29,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={rainbowTheme} modalSize="compact">
-          {children}
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    // reducedMotion="user" makes every motion.* component in the app defer to the OS setting
+    // automatically, so individual components never need their own useReducedMotion() check.
+    <MotionConfig reducedMotion="user">
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider theme={rainbowTheme} modalSize="compact">
+            {children}
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </MotionConfig>
   );
 }

@@ -25,27 +25,11 @@ export function Contrast() {
           </p>
         </div>
 
-        <div className="relative overflow-hidden bg-[var(--color-accent)] px-6 py-14 md:px-10 md:py-20">
-          {/* A closed seal, not an open portal - this half is the answer, so its ring sits still
-              and complete rather than spinning like the hero's. One faint rotating dash marks
-              that the verdict underneath is still a live, checked thing, not a static claim. */}
-          <div
-            className="portal-anim pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full border border-white/25 opacity-40"
-            aria-hidden
-          />
-          <div
-            className="portal-anim pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-70 [animation:portal-spin-cw_70s_linear_infinite]"
-            aria-hidden
-          >
-            <svg viewBox="0 0 100 100" className="h-full w-full">
-              <circle cx="50" cy="50" r="49" fill="none" stroke="white" strokeWidth="0.8" strokeDasharray="2 12" />
-            </svg>
-          </div>
-
-          <h2 className="relative max-w-[16ch] text-[clamp(26px,2.6vw,34px)] font-semibold leading-[1.15] tracking-[-0.02em] text-white">
+        <div className="bg-[var(--color-accent)] px-6 py-14 md:px-10 md:py-20">
+          <h2 className="max-w-[16ch] text-[clamp(26px,2.6vw,34px)] font-semibold leading-[1.15] tracking-[-0.02em] text-white">
             Qeltrun proves what they approved.
           </h2>
-          <p className="relative mt-5 max-w-[46ch] text-[15.5px] leading-[1.65] text-white/85">
+          <p className="mt-5 max-w-[46ch] text-[15.5px] leading-[1.65] text-white/85">
             Three named reviewers each seal a private yes or no against one specific destination
             change. The contract adds them up inside the enclave and publishes a single verdict.
             The payout wallet moves only when that verdict says yes.

@@ -53,19 +53,6 @@ export function FooterCta() {
         }}
         aria-hidden
       />
-
-      {/* A completed ring, not a spinning one - the verification path this page has been walking
-          through closes here rather than continuing. Fully still, no animation at all. */}
-      <div
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[46vmin] w-[46vmin] max-h-[420px] max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-30"
-        aria-hidden
-      >
-        <svg viewBox="0 0 100 100" className="h-full w-full">
-          <circle cx="50" cy="50" r="48" fill="none" stroke="var(--color-hero-ink)" strokeWidth="0.5" />
-          <circle cx="50" cy="50" r="38" fill="none" stroke="var(--color-hero-ink)" strokeWidth="0.5" />
-        </svg>
-      </div>
-
       <div className="relative mx-auto max-w-[1240px] px-6 py-20 [text-shadow:0_1px_3px_rgba(0,0,0,0.85),0_2px_12px_rgba(0,0,0,0.6)] md:px-12 md:py-24">
         <h2 className="max-w-[20ch] text-[clamp(28px,3.4vw,44px)] font-semibold leading-[1.1] tracking-[-0.02em] text-white">
           Watch it refuse a payment.

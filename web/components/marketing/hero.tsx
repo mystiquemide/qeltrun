@@ -1,15 +1,7 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useRef } from 'react';
-import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
-
-/// The rings/fog/particles are decorative, not critical content, so they load after the headline
-/// and buttons are already interactive rather than sharing the initial bundle with them. `ssr:
-/// false` also sidesteps ever needing to server-render a `<canvas>`-adjacent, viewport-measuring
-/// component that only makes sense once a real window exists.
-const HeroPortal = dynamic(() => import('./hero-portal').then((m) => m.HeroPortal), { ssr: false });
+import { motion } from 'motion/react';
 
 /**
  * The hero is the one place the light surface goes dark, which makes it the transition into the
@@ -26,25 +18,11 @@ const HeroPortal = dynamic(() => import('./hero-portal').then((m) => m.HeroPorta
  * Photograph by Clem Onojeghuo on Unsplash, credited in the footer references block.
  */
 export function Hero() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const reducedMotion = useReducedMotion();
-
-  // Same scroll range HeroPortal reads (Hero's own height, roughly 80-100vh): as the section
-  // scrolls out from under the viewport, the text moves forward a little and fades, so it reads
-  // as passing the portal rather than the page just ending.
-  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end start'] });
-  const reduced = reducedMotion === true;
-  const textOpacity = useTransform(scrollYProgress, [0, 0.45, 0.8], reduced ? [1, 1, 1] : [1, 1, 0]);
-  const textScale = useTransform(scrollYProgress, [0, 1], reduced ? [1, 1] : [1, 1.06]);
-
   return (
     /* Full bleed. The hatched gutters disappear against a light section but turn
        into a white frame around a dark one, which reads as a mistake. The hero is also the one
        section allowed to break the grid; the rail resumes below it. */
-    <section ref={sectionRef} className="relative overflow-hidden bg-[var(--color-hero-bg)]">
-      {/* Nav is `absolute` over this section (see nav.tsx), not in flow, so the section itself
-          already starts at the very top of the page - the photograph needs no extra reach to
-          run behind it. */}
+    <section className="relative overflow-hidden bg-[var(--color-hero-bg)]">
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: 'url(/hero-structure.jpg)' }}
@@ -59,10 +37,6 @@ export function Hero() {
         aria-hidden
       />
 
-      {/* Behind the text, above the photo. A sealed verification chamber, restrained in idle,
-          that grows and darkens as this section scrolls out - see hero-portal.tsx. */}
-      <HeroPortal containerRef={sectionRef} />
-
       <div className="relative mx-auto max-w-[1240px]">
         {/* Sized so the hero lands around 83vh at 1440x900. At a full 100vh there is no hint that
             anything follows and the section below never peeks above the fold. */}
@@ -72,7 +46,9 @@ export function Hero() {
             regardless of what part of the photo sits behind it, the same fix already used for
             the nav. */}
         <motion.div
-          style={{ opacity: textOpacity, scale: textScale }}
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
           className="px-6 py-20 [text-shadow:0_1px_3px_rgba(0,0,0,0.85),0_2px_12px_rgba(0,0,0,0.6)] md:px-12 md:py-28"
         >
           <h1 className="h-display max-w-[13ch] text-white">Before funds move, prove the change.</h1>

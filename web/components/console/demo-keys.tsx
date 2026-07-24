@@ -33,7 +33,7 @@ export function DemoKeys() {
     <section className="tpanel p-4">
       <div className="flex items-center justify-between gap-3 border-b border-[var(--color-divider)] pb-2.5">
         <h2 className="text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--color-ink-dim)]">
-          Demo reviewer keys
+          Reviewer keys
         </h2>
         <span className="rounded-md border border-[var(--color-warning)]/40 bg-[var(--color-warning)]/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--color-warning)]">
           testnet burners

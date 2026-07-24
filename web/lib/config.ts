@@ -100,6 +100,15 @@ export function isLocalChain(chainId: number | undefined): boolean {
   return chainId === hardhatLocal.id;
 }
 
+/// The registered vendor id is a hash of its exact label string, so the label itself cannot
+/// change without registering an entirely new vendor. Until that happens, this strips the
+/// on-chain label down to something that reads as a product, not a placeholder, for display
+/// only - the on-chain identity and the value NEXT_PUBLIC_SEPOLIA_VENDOR_LABEL holds are
+/// untouched.
+export function displayVendorLabel(label: string): string {
+  return label.replace(/^vendor:/, '').replace(/-demo$/, '');
+}
+
 /// A name a visitor recognises, not the raw chain id. `supportedChains` only ever adds real
 /// networks here as they go live, so this stays a short, explicit list rather than a generic
 /// chain-id-to-name registry.

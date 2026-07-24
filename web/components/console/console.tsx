@@ -19,6 +19,7 @@ import {
   chainName,
   defaultChainId,
   deploymentFor,
+  displayVendorLabel,
   explorerTxUrl,
   isLocalChain,
   type Address,
@@ -350,7 +351,7 @@ export function Console() {
           <Stat label="Gate" tone={gatePending ? undefined : allowed ? 'approved' : 'blocked'}>
             {gatePending ? 'reading' : allowed ? 'ALLOWED' : 'BLOCKED'}
           </Stat>
-          <Stat label="Vendor">{deployment.demoVendor.label.replace('vendor:', '')}</Stat>
+          <Stat label="Vendor">{displayVendorLabel(deployment.demoVendor.label)}</Stat>
           <Stat label="Cleared address">
             {vendor === undefined ? 'reading' : truncate(vendor.payoutWallet, 6, 4)}
           </Stat>
@@ -371,7 +372,7 @@ export function Console() {
           <div className="space-y-4">
             <Region title="Vendor">
               <Field label="Name">
-                <Mono value={deployment.demoVendor.label} />
+                <Mono value={displayVendorLabel(deployment.demoVendor.label)} title={deployment.demoVendor.label} />
               </Field>
               <Field label="Cleared address" emphasis>
                 <Mono
