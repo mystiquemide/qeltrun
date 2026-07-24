@@ -31,7 +31,7 @@ export function Statement({
         }}
         aria-hidden
       />
-      <div className="relative mx-auto max-w-[1240px] px-6 py-20 md:px-12 md:py-28">
+      <div className="relative mx-auto max-w-[1240px] px-6 py-20 [text-shadow:0_1px_3px_rgba(0,0,0,0.85),0_2px_12px_rgba(0,0,0,0.6)] md:px-12 md:py-28">
         <p className="max-w-[24ch] text-[clamp(26px,3.4vw,44px)] font-semibold leading-[1.15] tracking-[-0.02em] text-white">
           {children}
         </p>

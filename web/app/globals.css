@@ -281,3 +281,41 @@ h3 {
     opacity: 0.35;
   }
 }
+
+/* The hero portal's idle motion (rings, fog, particles, the sealed centre). Durations live inline
+   per element since each ring needs its own speed; the reduced-motion cutoff lives here instead,
+   because it needs `!important` to beat those same inline `animation` declarations - a stylesheet
+   rule cannot out-specificity an inline style any other way. */
+@media (prefers-reduced-motion: reduce) {
+  .portal-anim {
+    animation: none !important;
+  }
+}
+
+@keyframes portal-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes portal-spin-cw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes portal-spin-ccw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}

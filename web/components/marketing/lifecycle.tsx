@@ -87,8 +87,29 @@ export function Lifecycle({ receipts = false }: { receipts?: boolean }) {
                     aria-expanded={on}
                     className="w-full cursor-pointer py-6 text-left"
                   >
-                    <span className="ledger text-[11px] tracking-[0.12em] text-[var(--color-ink-400)]">
-                      {s.index}
+                    <span className="inline-flex items-center gap-2">
+                      {/* The pulse travelling through the stages. Blocked stages hold a still red
+                          dot - a refusal does not animate, it stops - and only the settled stage
+                          gets the live pulse, marking the moment the gate actually opens. */}
+                      <span
+                        className={on && s.gate.tone === 'allowed' ? 'pulse-live' : ''}
+                        style={{
+                          display: 'inline-block',
+                          width: 6,
+                          height: 6,
+                          borderRadius: 999,
+                          background: on
+                            ? s.gate.tone === 'allowed'
+                              ? 'var(--color-approved)'
+                              : 'var(--color-blocked)'
+                            : 'var(--color-ink-400)',
+                          opacity: on ? 1 : 0.4,
+                          boxShadow: on ? `0 0 6px ${s.gate.tone === 'allowed' ? 'var(--color-approved)' : 'var(--color-blocked)'}` : 'none',
+                        }}
+                      />
+                      <span className="ledger text-[11px] tracking-[0.12em] text-[var(--color-ink-400)]">
+                        {s.index}
+                      </span>
                     </span>
                     <span
                       className="mt-2 block text-[19px] font-semibold leading-snug tracking-[-0.01em] transition-colors"
