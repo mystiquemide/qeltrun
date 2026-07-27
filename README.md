@@ -47,6 +47,14 @@ contract address.
 
 ## Try it in 2 minutes
 
+### Demo video
+
+[![Watch the Qeltrun demo](https://img.youtube.com/vi/KIa9hieR9l4/maxresdefault.jpg)](https://www.youtube.com/watch?v=KIa9hieR9l4)
+
+Watch the [1 minute 58 second Qeltrun demo](https://www.youtube.com/watch?v=KIa9hieR9l4) to see
+the vendor-change threat, confidential iExec Nox review flow, enforced payout gate, and live
+Sepolia evidence.
+
 ### Fastest proof path
 
 No wallet is needed to inspect the evidence:
