@@ -55,6 +55,8 @@ Watch the [1 minute 58 second Qeltrun demo](https://www.youtube.com/watch?v=KIa9
 the vendor-change threat, confidential iExec Nox review flow, enforced payout gate, and live
 Sepolia evidence.
 
+Read the [Qeltrun submission post on X](https://x.com/mystiquemide/status/2081825551145398652).
+
 ### Fastest proof path
 
 No wallet is needed to inspect the evidence:
