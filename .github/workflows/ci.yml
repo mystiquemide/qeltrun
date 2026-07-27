@@ -34,7 +34,7 @@ jobs:
       # The ABI is generated from the compiled artifact. If `verify` changed it, the copy in
       # the repo was stale and the frontend was calling a signature that may no longer exist.
       - name: Fail if the exported ABI is stale
-        run: git diff --exit-code -- web/lib/firewall-abi.ts
+        run: git diff --exit-code -- src/contracts/generated/firewall-v2-abi.ts
 
       - run: pnpm run lint:sol
 
@@ -69,7 +69,10 @@ jobs:
 
       - run: pip install slither-analyzer
 
-      # Slither's findings on this contract are known and accepted; see docs/AUDIT.md. The job
-      # fails only if the set of findings changes, so a *new* finding cannot pass unnoticed.
-      - name: Slither against the accepted baseline
+      # Slither's findings are known and accepted; see docs/AUDIT.md. Each command fails if the
+      # finding set changes, so a new v1 or v2 finding cannot pass unnoticed.
+      - name: Slither against the accepted v1 baseline
         run: pnpm run audit:slither:ci
+
+      - name: Slither against the accepted v2 baselines
+        run: pnpm run audit:slither:v2

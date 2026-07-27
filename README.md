@@ -122,13 +122,12 @@ The Sepolia Safe has executed actual testnet transactions through the module:
 | Two-party approver rotation | [`0xf19a7f...2889`](https://sepolia.etherscan.io/tx/0xf19a7f085cac7b0761ca198be27a104a078627dd312e137a6b3859b8216f2889) | Approver epoch advanced to 2 |
 
 The console is gated behind wallet connect: it renders nothing but a connect prompt until a
-wallet is attached, so every number and every action on screen traces back to a signature. New
-screenshots of the v2 console are pending; the pair below still shows the earlier v1 dashboard
-against Sepolia and predates the wallet gate.
+wallet is attached, so every action on screen traces back to a signature. A visitor without a
+wallet can use the public proof page to inspect the same deployment and transaction receipts.
 
-| Blocked | Allowed |
+| v2 console gate | Public on-chain receipts |
 |---|---|
-| ![Payout blocked](docs/screenshots/01-blocked.png) | ![Payout allowed](docs/screenshots/02-allowed.png) |
+| ![Qeltrun v2 console wallet gate](docs/screenshots/01-v2-connect-gate.png) | ![Qeltrun v2 proof receipts](docs/screenshots/02-v2-proof-receipts.png) |
 
 ## How this differs
 
@@ -151,8 +150,6 @@ against Sepolia and predates the wallet gate.
   breaks confidentiality and proof authority.
 - **Safe governance exists.** The Safe can register vendors, change operational reviewers,
   pause, and schedule delayed approver recovery. It cannot directly replace a payout wallet.
-- **Screenshots lag the shipped frontend.** The v2 console (wallet-gated, RainbowKit, Sepolia
-  default) is live in the repo; the README screenshots above still show the earlier v1 dashboard.
 - **One live recovery observation is still maturing.** Early failure and veto passed on Sepolia.
   Successful post-delay execution passes locally and the matching public-chain transaction can
   execute after `2026-07-28 20:02:12 UTC`.
@@ -177,8 +174,9 @@ Current status:
 - 36 Vitest tests pass.
 - 64 Solidity tests pass.
 - Deep profile passes with 2,048 fuzz runs and 1,024 invariant runs at depth 64.
-- v1 and v2 Slither finding sets match reviewed baselines.
-- Dependency audit reports no known vulnerabilities.
+- v1 and v2 Slither finding sets match the reviewed baselines documented in
+  [`docs/AUDIT.md`](docs/AUDIT.md).
+- Dependency audit passes at the configured moderate severity threshold.
 - Hackathon backend release gate passes. The extra seven-day Sepolia observation is scheduled,
   not blocking.
 
