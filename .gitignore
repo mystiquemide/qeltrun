@@ -16,7 +16,6 @@ ignition/deployments
 # Internal working docs: agent memory, hackathon strategy notes, and design-tool logs.
 # History-scrubbed from this repo before making it public - see backup/pre-history-rewrite-*.
 memory.md
-feedback.md
 docs/TASKS.md
 docs/WIN_PLAN.md
 docs/DEMO_SCRIPT.md
